@@ -578,7 +578,8 @@ function generateTOC(content) {
   const h2Matches = [...content.matchAll(/<h2[^>]*>(.*?)<\/h2>/g)];
   const h3Matches = [...content.matchAll(/<h3[^>]*>(.*?)<\/h3>/g)];
   if (h2Matches.length + h3Matches.length < 2) return '<div class="toc-panel toc-empty"><div class="toc-title">📑 目录</div><div class="toc-empty-hint">本文较短，无目录</div></div>';
-  let toc = '<div class="toc-panel"><div class="toc-title">📑 目录</div><ul class="toc-list">';
+  const tocCollapsed = localStorage.getItem('toc_collapsed') === 'true';
+  let toc = '<div class="toc-panel' + (tocCollapsed ? ' collapsed' : '') + '"><div class="toc-title" onclick="toggleTOC(this.parentElement)">📑 目录</div><ul class="toc-list">';
   let idx = 0;
   // 构建章节索引
   const sections = [];
@@ -592,6 +593,11 @@ function generateTOC(content) {
   // 给content中的h2/h3添加id（已有content会在inner中使用，所以这里需要返回修改后的content的占位）
   return toc;
 }
+function toggleTOC(panel) {
+  panel.classList.toggle('collapsed');
+  localStorage.setItem('toc_collapsed', panel.classList.contains('collapsed'));
+}
+
 function scrollToToc(e, id) {
   e.preventDefault();
   const target = document.getElementById(id);

@@ -416,8 +416,27 @@ body::after {
   .container { padding:1rem; }
   .posts-grid { grid-template-columns:1fr; }
   .post-detail-header h2 { font-size:1.4rem; }
-  .toc-panel { float:none; width:100%; margin:0 0 1.5rem 0; }
   .tag-cloud { justify-content:center; }
+}
+/* ===== v3.9.51 TOC右侧固定（桌面端） ===== */
+@media(min-width:769px) {
+  .toc-panel {
+    position:fixed;
+    right:max(0.8rem, calc((100vw - 1150px) / 2));
+    top:90px;
+    width:200px;
+    max-height:calc(100vh - 130px);
+    overflow-y:auto;
+    margin:0;
+    z-index:10;
+  }
+  .toc-panel.collapsed {
+    width:auto;
+    min-width:40px;
+    max-height:none;
+    overflow-y:visible;
+  }
+  .toc-panel.toc-empty { width:200px; }
 }
 /* ===== 阅读进度条 ===== */
 .reading-progress {
@@ -441,11 +460,13 @@ body::after {
 /* ===== 文章目录(TOC) ===== */
 .toc-panel {
   background:rgba(26,34,54,0.6); border:1px solid var(--border-color);
-  border-radius:8px; padding:1rem 1.2rem; margin-bottom:2rem;
-  float:right; width:260px; margin-left:2rem;
-  position:sticky; top:1rem; z-index:5;
+  border-radius:8px; padding:1rem 1.2rem; margin-bottom:1.5rem;
+  width:100%;
 }
-.toc-title { font-size:0.85rem; color:var(--neon-blue); margin-bottom:0.7rem; font-weight:600; display:flex; align-items:center; gap:0.4rem; }
+.toc-title { font-size:0.85rem; color:var(--neon-blue); margin-bottom:0.7rem; font-weight:600; display:flex; align-items:center; gap:0.4rem; cursor:pointer; user-select:none; }
+.toc-title::after { content:'▼'; font-size:0.65rem; margin-left:auto; transition:transform 0.2s; }
+.toc-panel.collapsed .toc-title::after { transform:rotate(-90deg); }
+.toc-panel.collapsed .toc-list { display:none; }
 .toc-list { list-style:none; padding:0; margin:0; }
 .toc-list li { margin:0.25rem 0; }
 .toc-list a {
