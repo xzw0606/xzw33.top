@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>Xzw的博客 | 量化交易实盘记录</title>
+  <link>https://xzw33.top</link>
+  <description>量化交易实盘记录、策略迭代和技术笔记</description>
+  <language>zh-CN</language>
+  <lastBuildDate>Wed, 17 Jun 2026 14:25:41 GMT</lastBuildDate>
+  <atom:link href="https://xzw33.top/rss.xml" rel="self" type="application/rss+xml"/>
+  <item>
+    <title>策略更新 v3.9 — VERSION: 2026-06-17 v3.9.50 — 方案C: ATR追踪止损 + EMA</title>
+    <link>https://xzw33.top/#/post/strategy-update-20260617-v39</link>
+    <guid isPermaLink="false">strategy-update-20260617-v39</guid>
+    <description>VERSION: 2026-06-17 v3.9.50 — 方案C: ATR追踪止损 + EMA死叉止盈</description>
+    <pubDate>2026-06-17T00:00:00+08:00</pubDate>
+    <category>strategy</category>
+  </item>
+  <item>
+    <title>xzw33.top 从0到上线全记录</title>
+    <link>https://xzw33.top/#/post/xzw33-top-build-log</link>
+    <guid isPermaLink="false">xzw33-top-build-log</guid>
+    <description>个人博客 xzw33.top 从开发到部署上线的完整过程：纯HTML单文件、赛博朋克风格、Nginx配置、SSL证书、安全加固。</description>
+    <pubDate>2026-06-17T00:00:00+08:00</pubDate>
+    <category>quant</category>
+  </item>
+  <item>
+    <title>服务器安全加固实录（Nginx + Linux）</title>
+    <link>https://xzw33.top/#/post/server-security-hardening</link>
+    <guid isPermaLink="false">server-security-hardening</guid>
+    <description>对 xzw33.top 服务器进行完整安全加固：CSP头、隐藏版本号、security.txt、频率限制、隐藏文件保护。</description>
+    <pubDate>2026-06-17T00:00:00+08:00</pubDate>
+    <category>quant</category>
+  </item>
+  <item>
+    <title>策略说明 v3.9.48（当前运行版本）</title>
+    <link>https://xzw33.top/#/post/strategy-update-2026-06-17</link>
+    <guid isPermaLink="false">strategy-update-2026-06-17</guid>
+    <description>当前运行的策略版本 v3.9.48 说明：手动仓位不接管、ATR追踪止损开仓即启用、保本缓冲0.2%、超时平仓1小时。</description>
+    <pubDate>2026-06-17T00:00:00+08:00</pubDate>
+    <category>strategy</category>
+  </item>
+  <item>
+    <title>MomentumStrategy 系统架构详解</title>
+    <link>https://xzw33.top/#/post/momentum-strategy-architecture</link>
+    <guid isPermaLink="false">momentum-strategy-architecture</guid>
+    <description>详解 /opt/bian/ 量化系统的完整架构：engine引擎、position管理、selector选币、ATR追踪止损机制。</description>
+    <pubDate>2026-06-08T00:00:00+08:00</pubDate>
+    <category>quant</category>
+  </item>
+  <item>
+    <title>实盘记录 - 2026-06-08（亏损日）</title>
+    <link>https://xzw33.top/#/post/strategy-update-2026-06-08</link>
+    <guid isPermaLink="false">strategy-update-2026-06-08</guid>
+    <description>2026-06-08实盘记录：引擎自动交易32笔，盈亏-4.06U。主要亏损来源：STGUSDT硬止损-7.13U、PORTALUSDT硬止损-7.54U。</description>
+    <pubDate>2026-06-08T00:00:00+08:00</pubDate>
+    <category>strategy</category>
+  </item>
+  <item>
+    <title>ATR追踪止损实盘实现</title>
+    <link>https://xzw33.top/#/post/atr-trailing-stop-implementation</link>
+    <guid isPermaLink="false">atr-trailing-stop-implementation</guid>
+    <description>position/manager.py 中ATR追踪止损的完整实现逻辑：动态计算、保本触发、分层止盈、超时平仓。</description>
+    <pubDate>2026-06-07T00:00:00+08:00</pubDate>
+    <category>quant</category>
+  </item>
+  <item>
+    <title>策略更新 v3.9 — VERSION: 2026-06-05 v3.9.48 — 手动仓位不接管止损 — EMA缓冲0</title>
+    <link>https://xzw33.top/#/post/strategy-update-20260605-v39</link>
+    <guid isPermaLink="false">strategy-update-20260605-v39</guid>
+    <description>VERSION: 2026-06-05 v3.9.48 — 手动仓位不接管止损 — EMA缓冲0.2%+冷却30min — TP1/SL1出场</description>
+    <pubDate>2026-06-05T00:00:00+08:00</pubDate>
+    <category>strategy</category>
+  </item>
+  <item>
+    <title>币安合约API实战踩坑记录</title>
+    <link>https://xzw33.top/#/post/binance-api-pitfalls</link>
+    <guid isPermaLink="false">binance-api-pitfalls</guid>
+    <description>对接币安合约API的真实踩坑：时间戳同步、精度处理、错误码解读、频次限制。</description>
+    <pubDate>2026-06-05T00:00:00+08:00</pubDate>
+    <category>quant</category>
+  </item>
+  <item>
+    <title>A股量化筛选工具开发记录</title>
+    <link>https://xzw33.top/#/post/stock-screener-dev-log</link>
+    <guid isPermaLink="false">stock-screener-dev-log</guid>
+    <description>基于akshare库的A股自动化筛选工具开发记录：量比、换手率、市值过滤条件，每日盘前自动运行。</description>
+    <pubDate>2026-06-05T00:00:00+08:00</pubDate>
+    <category>quant</category>
+  </item>
+  <item>
+    <title>选币模块：成交量过滤的必要性</title>
+    <link>https://xzw33.top/#/post/selector-volume-filter</link>
+    <guid isPermaLink="false">selector-volume-filter</guid>
+    <description>为什么必须过滤低成交量币？真实爆雷案例：7天跌幅&gt;70%的归零币如何过滤。</description>
+    <pubDate>2026-06-03T00:00:00+08:00</pubDate>
+    <category>quant</category>
+  </item>
+  <item>
+    <title>HK量化服务器搭建记录</title>
+    <link>https://xzw33.top/#/post/hk-quant-server-setup</link>
+    <guid isPermaLink="false">hk-quant-server-setup</guid>
+    <description>在香港阿里云服务器上搭建Python量化交易系统的完整过程：环境配置、目录结构、systemd守护进程。</description>
+    <pubDate>2026-06-02T00:00:00+08:00</pubDate>
+    <category>quant</category>
+  </item>
+  <item>
+    <title>策略更新 v3.9 — 持仓管理模块 - 单仓版本 VERSION: 2026-05-31 v3.9.31</title>
+    <link>https://xzw33.top/#/post/strategy-update-20260531-v39</link>
+    <guid isPermaLink="false">strategy-update-20260531-v39</guid>
+    <description>持仓管理模块 - 单仓版本 VERSION: 2026-05-31 v3.9.31</description>
+    <pubDate>2026-05-31T00:00:00+08:00</pubDate>
+    <category>strategy</category>
+  </item>
+</channel>
+</rss>

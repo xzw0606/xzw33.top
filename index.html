@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- xzw33.top | blog.html | Version: v3.9.50 | Build: 2026-06-17 -->
+<!-- xzw33.top | blog.html | Version: v3.9.51 | Build: 2026-06-17 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -60,6 +60,8 @@ body::before {
   pointer-events:none;
   z-index:0;
 }
+/* 文章阅读时降低scanline干扰 */
+body.viewing-article::after { opacity: 0.12; animation-duration: 16s; }
 body::after {
   content:'';
   position:fixed;
@@ -658,6 +660,58 @@ body::after {
 .sim-table .side-sell { color:var(--neon-pink); font-weight:600; }
 .sim-updated { text-align:right; font-size:0.7rem; color:var(--text-secondary); margin-top:0.8rem; opacity:0.7; }
 .sim-empty { text-align:center; padding:2rem; color:var(--text-secondary); font-size:0.9rem; }
+
+/* ===== v3.9.51 热门标签 ===== */
+.hot-tags {
+  max-width: 1200px; margin: 0 auto 0.5rem; padding: 0 2rem;
+  display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
+}
+.hot-tags-label { font-size: 0.8rem; color: var(--text-secondary); }
+.hot-tag {
+  font-size: 0.75rem; padding: 0.25rem 0.7rem;
+  border-radius: 14px; cursor: pointer;
+  border: 1px solid var(--border-color);
+  background: rgba(0,212,255,0.05); color: var(--text-secondary);
+  transition: all 0.2s;
+}
+.hot-tag:hover { border-color: var(--neon-blue); color: var(--neon-blue); background: rgba(0,212,255,0.1); }
+/* ===== v3.9.51 模拟交易说明 ===== */
+.sim-description {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.6rem 1rem; margin: 0.8rem 0;
+  background: rgba(0,212,255,0.04); border-radius: 8px;
+  border: 1px solid rgba(0,212,255,0.1); flex-wrap: wrap; gap: 0.5rem;
+}
+.sim-desc-text { font-size: 0.8rem; color: var(--text-secondary); }
+.sim-refresh-btn {
+  font-size: 0.8rem; padding: 0.35rem 0.9rem;
+  border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--neon-blue);
+  background: rgba(0,212,255,0.08); color: var(--neon-blue);
+  transition: all 0.2s;
+}
+.sim-refresh-btn:hover { background: rgba(0,212,255,0.18); box-shadow: 0 0 8px rgba(0,212,255,0.2); }
+/* ===== v3.9.51 分析卡片 ===== */
+.sim-analytics-cards {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.8rem; margin-bottom: 1rem;
+}
+.sim-analytics-card {
+  background: linear-gradient(145deg, rgba(26,34,54,0.9), rgba(17,24,39,0.95));
+  border: 1px solid var(--border-color); border-radius: 10px;
+  padding: 0.9rem 1rem; text-align: center;
+}
+.sim-analytics-card .sac-label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+.sim-analytics-card .sac-value { font-size: 1.3rem; font-weight: 700; margin-top: 0.3rem; }
+.sim-analytics-card .sac-sub { font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.15rem; }
+@media(max-width:768px) {
+  .sim-analytics-cards { grid-template-columns: repeat(2, 1fr); }
+  .sim-description { flex-direction: column; align-items: flex-start; }
+}
+@media(max-width:480px) {
+  .sim-analytics-cards { grid-template-columns: 1fr 1fr; }
+  .sim-analytics-card .sac-value { font-size: 1.1rem; }
+}
 </style>
 <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js" defer></script>
@@ -683,7 +737,7 @@ body::after {
     </div>
     <div class="hero-stats" id="heroStats">
       <div class="hero-stat"><span class="hs-val">13</span><span class="hs-label">篇文章</span></div>
-      <div class="hero-stat"><span class="hs-val">v3.9.50</span><span class="hs-label">策略版本</span></div>
+      <div class="hero-stat"><span class="hs-val">v3.9.51</span><span class="hs-label">策略版本</span></div>
     </div>
   </div>
 </div>
@@ -692,6 +746,16 @@ body::after {
   <span class="search-icon">🔍</span>
   <input type="text" class="search-input" placeholder="搜索当前分类..." oninput="searchPosts(this.value)">
   <span class="search-scope" id="searchScope"></span>
+</div>
+
+<div class="hot-tags" id="hotTags">
+  <span class="hot-tags-label">🔥 热门：</span>
+  <span class="hot-tag" onclick="hotTagClick('ATR')">ATR</span>
+  <span class="hot-tag" onclick="hotTagClick('止损')">止损</span>
+  <span class="hot-tag" onclick="hotTagClick('API')">API踩坑</span>
+  <span class="hot-tag" onclick="hotTagClick('选币')">选币</span>
+  <span class="hot-tag" onclick="hotTagClick('架构')">架构</span>
+  <span class="hot-tag" onclick="hotTagClick('实盘')">实盘</span>
 </div>
 
 <div class="module-tabs">
@@ -714,7 +778,12 @@ body::after {
     <div class="sim-error" id="simError" style="display:none;">⚠️ 无法加载模拟数据，请稍后重试</div>
     <div class="sim-dashboard" id="simDashboard" style="display:none;">
       <div class="sim-strategy-status" id="simStrategyStatus"></div>
+      <div class="sim-description">
+        <span class="sim-desc-text">📌 模拟账户 · 实盘行情 · 虚拟资金（初始500U）· 数据每5分钟自动更新</span>
+        <button class="sim-refresh-btn" onclick="refreshSimulation()">🔄 手动刷新</button>
+      </div>
       <div class="sim-dashboard-cards" id="simCards"></div>
+      <div class="sim-analytics-cards" id="simAnalyticsCards"></div>
       <div class="sim-chart-container" id="simChartContainer"></div>
       <div class="sim-section">
         <h3 class="sim-section-title">📊 当前持仓</h3>
@@ -728,7 +797,7 @@ body::after {
   </div>
 </div>
 
-<div class="footer">© 2026 Xzw · xzw33.top · v3.9.50 · <a href="https://github.com/xzw0606/xzw33.top" target="_blank" rel="noopener">GitHub</a> · <a href="/rss.xml">RSS</a></div>
+<div class="footer">© 2026 Xzw · xzw33.top · v3.9.51 · <a href="https://github.com/xzw0606/xzw33.top" target="_blank" rel="noopener">GitHub</a> · <a href="/rss.xml">RSS</a></div>
 
 <button class="back-to-top" id="backToTop" onclick="scrollToTop()" title="回到顶部">⬆</button>
 

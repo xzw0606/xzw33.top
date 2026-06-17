@@ -20,6 +20,7 @@ function showHome() {
   document.getElementById('sortToggle').style.display = 'flex';
   document.getElementById('tagCloud').style.display = 'flex';
   currentPostId = null;
+  document.body.classList.remove('viewing-article');
   history.pushState(null, null, '#/');
   renderPosts();
 }
@@ -34,6 +35,7 @@ function showAbout() {
   currentPostId = null;
   // 重置所有Tab高亮
   document.querySelectorAll('.module-tab').forEach(tab => { tab.className = 'module-tab'; });
+  document.body.classList.remove('viewing-article');
   history.pushState(null, null, '#/about');
   renderAbout();
 }
@@ -273,6 +275,7 @@ function openPost(postId) {
     const pnlData = [-5.2, 3.8, -2.1, -4.06];
     requestAnimationFrame(() => { setTimeout(() => renderPnlChart('pnlChart2', dates, pnlData), 50); });
   }
+  document.body.classList.add('viewing-article');
   history.pushState(null, null, '#/post/' + postId);
   window.scrollTo(0, 0);
 }
@@ -650,6 +653,7 @@ function addHeadingAnchors() {
 }
 // ===== 模拟交易模块 =====
 let simData = null;
+let analyticsData = null;
 let simLoading = false;
 
 async function showSimulation() {
@@ -661,6 +665,7 @@ async function showSimulation() {
   document.getElementById('tagCloud').style.display = 'none';
   document.querySelectorAll('.module-tab').forEach(tab => { tab.className = 'module-tab'; });
   currentPostId = null;
+  document.body.classList.remove('viewing-article');
   history.pushState(null, null, '#/simulation');
 
   // 显示模拟面板
@@ -683,9 +688,14 @@ async function fetchSimulationData() {
   document.getElementById('simDashboard').style.display = 'none';
 
   try {
-    const resp = await fetch('/simulation.json?t=' + Date.now());
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    simData = await resp.json();
+    const [simResp, anaResp] = await Promise.all([
+      fetch('/simulation.json?t=' + Date.now()),
+      fetch('/analytics.json?t=' + Date.now())
+    ]);
+    if (!simResp.ok) throw new Error('HTTP ' + simResp.status);
+    simData = await simResp.json();
+    if (anaResp.ok) { try { analyticsData = await anaResp.json(); } catch(e) { analyticsData = null; } }
+    else { analyticsData = null; }
     renderSimulationDashboard();
   } catch (e) {
     document.getElementById('simLoading').style.display = 'none';
@@ -740,6 +750,8 @@ function renderSimulationDashboard() {
       '<div class="sc-sub">浮盈 $' + (a.unrealized_pnl || 0).toFixed(2) + '</div>' +
     '</div>';
 
+  // 分析卡片（夏普/回撤/盈亏比/期望值）
+  renderAnalyticsCards();
   // 权益曲线
   renderEquityChart(simData.equity_history || []);
 
@@ -951,6 +963,80 @@ function renderPositionsTable(positions) {
   container.innerHTML = html;
 }
 
+// ===== v3.9.51 分析卡片（夏普/回撤/盈亏比/期望值） =====
+function renderAnalyticsCards() {
+  const container = document.getElementById('simAnalyticsCards');
+  if (!container) return;
+  if (!analyticsData || !analyticsData.trade_metrics) {
+    // 无 analytics 数据时尝试从 simulation 数据计算
+    if (simData && simData.closed_trades && simData.closed_trades.length > 0) {
+      const trades = simData.closed_trades;
+      const wins = trades.filter(t => t.pnl > 0);
+      const losses = trades.filter(t => t.pnl <= 0);
+      const totalPnL = trades.reduce((s, t) => s + t.pnl, 0);
+      const winSum = wins.reduce((s, t) => s + t.pnl, 0);
+      const lossSum = Math.abs(losses.reduce((s, t) => s + t.pnl, 0));
+      const pf = lossSum > 0 ? (winSum / lossSum).toFixed(2) : '--';
+      const expVal = trades.length > 0 ? (totalPnL / trades.length).toFixed(2) : '--';
+      const maxDD = simData.account && simData.account.max_drawdown_pct 
+        ? simData.account.max_drawdown_pct.toFixed(1) + '%' : '--';
+      container.innerHTML =
+        '<div class="sim-analytics-card card-pf">' +
+          '<div class="sac-label">盈亏比</div>' +
+          '<div class="sac-value" style="color:' + (parseFloat(pf) >= 1 ? '#39ff14' : '#ff4466') + '">' + pf + '</div>' +
+          '<div class="sac-sub">盈利合计/' + (lossSum > 0 ? '亏损合计' : '--') + '</div>' +
+        '</div>' +
+        '<div class="sim-analytics-card card-exp">' +
+          '<div class="sac-label">期望值</div>' +
+          '<div class="sac-value" style="color:' + (parseFloat(expVal) >= 0 ? '#39ff14' : '#ff4466') + '">$' + expVal + '</div>' +
+          '<div class="sac-sub">每笔交易平均</div>' +
+        '</div>' +
+        '<div class="sim-analytics-card card-dd">' +
+          '<div class="sac-label">最大回撤</div>' +
+          '<div class="sac-value" style="color:#f59e0b">' + maxDD + '</div>' +
+          '<div class="sac-sub">权益峰值到谷底</div>' +
+        '</div>' +
+        '<div class="sim-analytics-card card-count">' +
+          '<div class="sac-label">交易笔数</div>' +
+          '<div class="sac-value" style="color:#00d4ff">' + trades.length + '</div>' +
+          '<div class="sac-sub">' + wins.length + '赢 / ' + losses.length + '亏</div>' +
+        '</div>';
+      return;
+    }
+    container.innerHTML = '<div class="sim-empty" style="grid-column:1/-1">📊 分析数据收集中，需要更多交易日</div>';
+    return;
+  }
+  const m = analyticsData.trade_metrics;
+  const p = analyticsData.performance || {};
+  const pf = m.profit_factor || 0;
+  const sharpe = p.sharpe_ratio || '--';
+  const maxDD = p.max_drawdown ? (p.max_drawdown.max_dd_pct || p.max_drawdown) : '--';
+  const maxDDStr = typeof maxDD === 'object' ? (maxDD.max_dd_pct || '--') + '%' : (maxDD !== '--' ? maxDD + '%' : '--');
+  const wl = (m.win_count || 0) + '赢 / ' + (m.loss_count || 0) + '亏';
+  
+  container.innerHTML =
+    '<div class="sim-analytics-card card-sharpe">' +
+      '<div class="sac-label">夏普比率</div>' +
+      '<div class="sac-value" style="color:' + (typeof sharpe === 'number' && sharpe >= 1 ? '#39ff14' : typeof sharpe === 'number' && sharpe > 0 ? '#f59e0b' : '#ff4466') + '">' + (typeof sharpe === 'number' ? sharpe.toFixed(2) : sharpe) + '</div>' +
+      '<div class="sac-sub">年化风险调整收益</div>' +
+    '</div>' +
+    '<div class="sim-analytics-card card-pf">' +
+      '<div class="sac-label">盈亏比</div>' +
+      '<div class="sac-value" style="color:' + (pf >= 1 ? '#39ff14' : '#ff4466') + '">' + (typeof pf === 'number' ? pf.toFixed(2) : pf) + '</div>' +
+      '<div class="sac-sub">$' + (m.avg_win || 0).toFixed(0) + ' / -$' + Math.abs(m.avg_loss || 0).toFixed(0) + ' 均笔</div>' +
+    '</div>' +
+    '<div class="sim-analytics-card card-dd">' +
+      '<div class="sac-label">最大回撤</div>' +
+      '<div class="sac-value" style="color:#f59e0b">' + maxDDStr + '</div>' +
+      '<div class="sac-sub">' + wl + '</div>' +
+    '</div>' +
+    '<div class="sim-analytics-card card-exp">' +
+      '<div class="sac-label">期望值</div>' +
+      '<div class="sac-value" style="color:' + ((m.expectancy || 0) >= 0 ? '#39ff14' : '#ff4466') + '">$' + (m.expectancy || 0).toFixed(2) + '</div>' +
+      '<div class="sac-sub">' + (m.total_trades || 0) + '笔交易 · ' + (m.win_rate || 0) + '%胜率</div>' +
+    '</div>';
+}
+
 function renderTradesTable(trades) {
   const container = document.getElementById('simTrades');
   if (!trades || trades.length === 0) {
@@ -979,6 +1065,16 @@ function renderTradesTable(trades) {
   container.innerHTML = html;
 }
 
+// ===== v3.9.51 手动刷新模拟数据 =====
+async function refreshSimulation() {
+  const btn = document.querySelector('.sim-refresh-btn');
+  if (btn) { btn.textContent = '⏳ 刷新中...'; btn.disabled = true; }
+  simData = null;
+  analyticsData = null;
+  await fetchSimulationData();
+  if (btn) { btn.textContent = '🔄 手动刷新'; btn.disabled = false; }
+}
+
 function formatPrice(price) {
   if (price === null || price === undefined || price === 0) return '-';
   if (price >= 100) return price.toFixed(2);
@@ -987,6 +1083,25 @@ function formatPrice(price) {
   return price.toFixed(6);
 }
 // ===== 模拟交易模块 END =====
+// ===== v3.9.51 热门标签点击 =====
+function hotTagClick(tag) {
+  // 切换到量化交易笔记tab（标签主要在quant模块）
+  currentModule = 'quant';
+  document.querySelectorAll('.module-tab').forEach(tab => { tab.className = 'module-tab'; });
+  const quantTab = document.querySelector('[data-module="quant"]');
+  if (quantTab) quantTab.classList.add('active-quant');
+  document.getElementById('posts-list').style.display = 'block';
+  document.getElementById('about-page').style.display = 'none';
+  document.getElementById('simulation-page').style.display = 'none';
+  document.getElementById('post-detail').classList.remove('active');
+  document.getElementById('searchScope').textContent = '量化交易笔记';
+  searchQuery = '';
+  activeTag = tag;
+  document.querySelectorAll('.search-input').forEach(inp => { inp.value = ''; });
+  renderPosts();
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
 // ===== 滚动事件监听 =====
 window.addEventListener('scroll', function() {
   handleReadingProgress();

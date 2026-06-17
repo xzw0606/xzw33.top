@@ -2,4 +2,3 @@ User-agent: *
 Allow: /
 Disallow: /simulation.json
 Disallow: /analytics.json
-Sitemap: https://xzw33.top/sitemap.xml
