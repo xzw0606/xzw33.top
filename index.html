@@ -1285,7 +1285,7 @@ function renderAbout() {
         '<div class="focus-title">全栈开发</div>' +
         '<div class="focus-desc">Python 后端 · Nginx 运维 · 微信小程序 · 赛博朋克风格前端</div>' +
       '</div>' +
-    '</div>' +
+          '</div>' +
     // 技术栈
     '<div class="about-section-title">🛠️ 技术栈</div>' +
     '<div class="about-tech-tags">' +
@@ -1993,3 +1993,128 @@ function renderEquityChart(history) {
   ctx.strokeStyle = '#00d4ff';
   ctx.lineWidth = 1.5;
   ctx.shadowColor = 'rgba(0,212,255,0.3)';
+  ctx.shadowBlur = 5;
+  ctx.beginPath();
+  for (let i = 0; i < history.length; i++) {
+    const x = pad.left + (i / (history.length - 1)) * pw;
+    const y = pad.top + ((maxVal - history[i].equity) / (maxVal - minVal)) * ph;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // 起点和终点标记
+  const lastIdx = history.length - 1;
+  const lx = pad.left + (lastIdx / lastIdx) * pw;
+  const ly = pad.top + ((maxVal - history[lastIdx].equity) / (maxVal - minVal)) * ph;
+  // 终点
+  ctx.fillStyle = '#00d4ff';
+  ctx.shadowColor = 'rgba(0,212,255,0.8)';
+  ctx.shadowBlur = 12;
+  ctx.beginPath();
+  ctx.arc(lx, ly, 4, 0, Math.PI * 2);
+  ctx.fill();
+  // 终点标注
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#00d4ff';
+  ctx.font = 'bold 11px monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText('$' + history[lastIdx].equity.toFixed(2), lx + 8, ly + 4);
+
+  // X轴标签（简化）
+  ctx.fillStyle = '#64748b';
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'center';
+  const xStep = Math.max(1, Math.floor(history.length / 5));
+  for (let i = 0; i < history.length; i += xStep) {
+    const x = pad.left + (i / (history.length - 1)) * pw;
+    const label = history[i].t || '';
+    const short = label.length > 16 ? label.slice(-8) : label.slice(11, 16);
+    ctx.fillText(short, x, H - pad.bottom + 16);
+  }
+}
+
+function renderPositionsTable(positions) {
+  const container = document.getElementById('simPositions');
+  if (!positions || positions.length === 0) {
+    container.innerHTML = '<div class="sim-empty">暂无持仓</div>';
+    return;
+  }
+  let html = '<table class="sim-table"><thead><tr>' +
+    '<th>交易对</th><th>方向</th><th>入场价</th><th>当前价</th><th>数量</th><th>保证金</th><th>杠杆</th><th>浮盈(USD)</th><th>浮盈(%)</th><th>开仓时间</th>' +
+    '</tr></thead><tbody>';
+  positions.forEach(p => {
+    const pnlClass = p.unrealized_pnl >= 0 ? 'pnl-up' : 'pnl-down';
+    const pnlSign = p.unrealized_pnl >= 0 ? '+' : '';
+    const sideClass = p.side === 'BUY' ? 'side-buy' : 'side-sell';
+    html += '<tr>' +
+      '<td style="color:#e2e8f0">' + p.symbol + '</td>' +
+      '<td class="' + sideClass + '">' + (p.side === 'BUY' ? '多' : '空') + '</td>' +
+      '<td>' + formatPrice(p.entry_price) + '</td>' +
+      '<td>' + formatPrice(p.current_price) + '</td>' +
+      '<td>' + (p.size || 0).toFixed(2) + '</td>' +
+      '<td>$' + (p.size_usdt || 0).toFixed(0) + '</td>' +
+      '<td>' + (p.leverage || 0) + 'x</td>' +
+      '<td class="' + pnlClass + '">' + pnlSign + '$' + (p.unrealized_pnl || 0).toFixed(2) + '</td>' +
+      '<td class="' + pnlClass + '">' + pnlSign + (p.pnl_pct || 0).toFixed(2) + '%</td>' +
+      '<td style="color:#94a3b8;font-size:0.75rem">' + (p.open_time || '') + '</td>' +
+      '</tr>';
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function renderTradesTable(trades) {
+  const container = document.getElementById('simTrades');
+  if (!trades || trades.length === 0) {
+    container.innerHTML = '<div class="sim-empty">暂无平仓记录</div>';
+    return;
+  }
+  let html = '<table class="sim-table"><thead><tr>' +
+    '<th>交易对</th><th>方向</th><th>入场价</th><th>出场价</th><th>保证金</th><th>盈亏(USD)</th><th>盈亏(%)</th><th>平仓时间</th>' +
+    '</tr></thead><tbody>';
+  trades.forEach(t => {
+    const pnlClass = t.pnl >= 0 ? 'pnl-up' : 'pnl-down';
+    const pnlSign = t.pnl >= 0 ? '+' : '';
+    const sideClass = t.side === 'BUY' ? 'side-buy' : 'side-sell';
+    html += '<tr>' +
+      '<td style="color:#e2e8f0">' + t.symbol + '</td>' +
+      '<td class="' + sideClass + '">' + (t.side === 'BUY' ? '多' : '空') + '</td>' +
+      '<td>' + formatPrice(t.entry_price) + '</td>' +
+      '<td>' + formatPrice(t.exit_price) + '</td>' +
+      '<td>$' + (t.size_usdt || 0).toFixed(0) + '</td>' +
+      '<td class="' + pnlClass + '">' + pnlSign + '$' + (t.pnl || 0).toFixed(2) + '</td>' +
+      '<td class="' + pnlClass + '">' + pnlSign + (t.pnl_pct || 0).toFixed(2) + '%</td>' +
+      '<td style="color:#94a3b8;font-size:0.75rem">' + (t.close_time || '') + '</td>' +
+      '</tr>';
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function formatPrice(price) {
+  if (price === null || price === undefined || price === 0) return '-';
+  if (price >= 100) return price.toFixed(2);
+  if (price >= 1) return price.toFixed(4);
+  if (price >= 0.01) return price.toFixed(5);
+  return price.toFixed(6);
+}
+// ===== 模拟交易模块 END =====
+// ===== 滚动事件监听 =====
+window.addEventListener('scroll', function() {
+  handleReadingProgress();
+  // 高亮当前TOC项
+  const tocLinks = document.querySelectorAll('.toc-panel a');
+  if (tocLinks.length === 0) return;
+  const headings = document.querySelectorAll('.post-content h2, .post-content h3');
+  if (headings.length === 0) return;
+  let current = -1;
+  headings.forEach((h, i) => {
+    if (h.getBoundingClientRect().top <= 120) current = i;
+  });
+  tocLinks.forEach((a,i) => { a.classList.toggle('active', i === current); });
+}, {passive:true});
+</script>
+</body>
+</html>
