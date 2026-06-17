@@ -4,8 +4,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>熊忠伟的博客 | 量化交易 & 技术笔记</title>
-<meta name="description" content="熊忠伟的个人博客，记录量化交易实盘、币安合约策略、Python自动化交易系统开发，以及技术售前方案。">
+<title>熊忠伟的博客 | 量化交易实盘记录</title>
+<meta name="description" content="熊忠伟的个人博客，记录量化交易实盘、币安合约策略、Python自动化交易系统开发。">
 <meta name="author" content="熊忠伟">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://xzw33.top/">
@@ -217,21 +217,23 @@ body::after {
 .tag.strategy { background:rgba(57,255,20,0.08); color:var(--neon-green); border-color:rgba(57,255,20,0.15); }
 .date { color:var(--text-secondary); font-size:0.78rem; }
 .reading-time { color:var(--text-secondary); font-size:0.78rem; margin-left:0.5rem; }
-.hero-banner { background:linear-gradient(135deg,rgba(17,24,39,0.95),rgba(10,14,23,0.98)); border-bottom:1px solid rgba(0,212,255,0.15); padding:1.2rem 2rem 1rem; }
+.hero-banner { background:linear-gradient(135deg,rgba(17,24,39,0.95),rgba(10,14,23,0.98)); border-bottom:1px solid rgba(0,212,255,0.15); padding:0.6rem 2rem 0.5rem; }
 .hero-inner { max-width:1200px; margin:0 auto; display:flex; align-items:center; gap:1.2rem; flex-wrap:wrap; }
-.hero-avatar { font-size:2.4rem; line-height:1; }
-.hero-name { font-size:1.2rem; font-weight:600; color:var(--text-primary); margin:0; }
+.hero-avatar { font-size:1.8rem; line-height:1; }
+.hero-name { font-size:1rem; font-weight:600; color:var(--text-primary); margin:0; }
 .hero-tagline { font-size:0.8rem; color:var(--text-secondary); margin:0.15rem 0 0; }
+.hero-bio { font-size:0.7rem; color:#6b7d8e; margin:0.2rem 0 0; }
 .hero-stats { display:flex; gap:1.5rem; margin-left:auto; }
 .hero-stat { text-align:center; }
-.hs-val { display:block; font-size:1.3rem; font-weight:700; color:var(--neon-blue); font-family:monospace; }
+.hs-val { display:block; font-size:1.1rem; font-weight:700; color:var(--neon-blue); font-family:monospace; }
 .hs-label { display:block; font-size:0.65rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; }
 @media(max-width:768px) {
-  .hero-banner { padding:0.8rem 1rem; }
-  .hero-avatar { font-size:1.8rem; }
+  .hero-banner { padding:0.5rem 1rem; }
+  .hero-avatar { font-size:1.5rem; }
+  .hero-bio { display:none; }
   .hero-name { font-size:1rem; }
   .hero-stats { width:100%; justify-content:space-around; margin-left:0; margin-top:0.5rem; }
-  .hs-val { font-size:1rem; }
+  .hs-val { font-size:0.9rem; }
 }
 @media(max-width:480px) {
   .hero-stats { gap:0.8rem; }
@@ -666,7 +668,7 @@ body::after {
 
 <header class="header">
   <div class="header-inner">
-    <div class="site-title" onclick="showHome()">XZW_BLOG v3.10</div>
+    <div class="site-title" onclick="showHome()">熊忠伟 · 量化交易</div>
     <div class="header-subtitle">一个量化交易者的实盘记录、策略迭代和踩坑笔记</div>
   </div>
 </header>
@@ -677,11 +679,11 @@ body::after {
     <div class="hero-text">
       <h1 class="hero-name">熊忠伟</h1>
       <p class="hero-tagline">量化交易者 · 实盘记录 · 策略迭代</p>
+      <p class="hero-bio">重庆 · 售前技术 · 币安合约 · HK服务器 24h</p>
     </div>
     <div class="hero-stats" id="heroStats">
       <div class="hero-stat"><span class="hs-val">13</span><span class="hs-label">篇文章</span></div>
-      <div class="hero-stat"><span class="hs-val" id="heroDays">—</span><span class="hs-label">运行天数</span></div>
-      <div class="hero-stat"><span class="hs-val">2</span><span class="hs-label">Tab分类</span></div>
+      <div class="hero-stat"><span class="hs-val">v3.10</span><span class="hs-label">策略版本</span></div>
     </div>
   </div>
 </div>
@@ -703,7 +705,7 @@ body::after {
   <div class="sort-toggle" id="sortToggle"></div>
   <div class="tag-cloud" id="tagCloud"></div>
   <div id="posts-list">
-    <div class="posts-grid" id="posts-grid"></div>
+    <div class="posts-grid" id="posts-grid"><noscript><div class="empty-state"><h3>需要 JavaScript</h3><p>本网站依赖 JavaScript 渲染内容，请启用后刷新。</p></div></noscript></div>
   </div>
   <div id="post-detail" class="post-detail"></div>
   <div id="about-page" class="about-section" style="display:none;"></div>
