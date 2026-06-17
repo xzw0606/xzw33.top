@@ -1823,7 +1823,7 @@ function renderSimulationDashboard() {
   const updatedAt = simData.updated_ts ? new Date(simData.updated_ts * 1000) : null;
   const minsAgo = updatedAt ? Math.floor((now - updatedAt) / 60000) : null;
   const statusRunning = minsAgo !== null && minsAgo < 30;
-  const version = simData.version || 'v3.9';
+  const version = simData.version || 'v3.10';
   document.getElementById('simStrategyStatus').innerHTML =
     '<span class="ss-item"><span class="ss-dot ' + (statusRunning ? 'on' : 'off') + '"></span>' +
     (statusRunning ? '策略运行中' : '数据可能停更') + '</span>' +
