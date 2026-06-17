@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- xzw33.top | blog.html | Version: v3.9 | Build: 2026-06-17 -->
+<!-- xzw33.top | blog.html | Version: v3.10 | Build: 2026-06-17 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -9,16 +9,17 @@
 <meta name="author" content="熊忠伟">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://xzw33.top/">
-<meta property="og:title" content="熊忠伟的博客 | 量化交易 & 技术笔记">
+<meta property="og:title" content="熊忠伟的博客 | 量化交易实盘记录">
 <meta property="og:description" content="量化交易实盘记录、币安合约API实战、Python自动化交易系统开发。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://xzw33.top/">
 <meta property="og:image" content="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 630'><rect fill='%230a0e17' width='1200' height='630'/><text fill='%2300d4ff' font-size='48' font-family='monospace' x='60' y='120'>XZW_BLOG</text><text fill='%23e2e8f0' font-size='28' font-family='sans-serif' x='60' y='200'>量化交易实盘 & 技术笔记</text><text fill='%2394a3b8' font-size='20' font-family='sans-serif' x='60' y='280'>xzw33.top</text></svg>">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="熊忠伟的博客 | 量化交易 & 技术笔记">
+<meta name="twitter:title" content="熊忠伟的博客 | 量化交易实盘记录">
 <meta name="twitter:description" content="量化交易实盘记录、币安合约API实战、Python自动化交易系统开发。">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 <link rel="alternate" type="application/rss+xml" title="xzw33.top RSS" href="/rss.xml">
+<script src="/analytics.js" defer></script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebSite","name":"熊忠伟的博客","url":"https://xzw33.top/","description":"量化交易实盘记录与技术笔记","author":{"@type":"Person","name":"熊忠伟"},"potentialAction":{"@type":"SearchAction","target":"https://xzw33.top/#/tab/quant?search={search_term_string}","query-input":"required name=search_term_string"}}
 </script>
@@ -152,12 +153,6 @@ body::after {
   box-shadow: var(--glow-blue);
   background:rgba(0,212,255,0.05);
 }
-.module-tab.active-tech {
-  border-color:var(--neon-pink);
-  color:var(--neon-pink);
-  box-shadow: var(--glow-pink);
-  background:rgba(255,45,149,0.05);
-}
 .module-tab.active-strategy {
   border-color:var(--neon-green);
   color:var(--neon-green);
@@ -203,13 +198,10 @@ body::after {
   border-color:rgba(0,212,255,0.4);
   box-shadow: 0 8px 30px rgba(0,0,0,0.4), var(--glow-blue);
 }
-.post-card.tech::before { background:linear-gradient(90deg, var(--neon-pink), #ff6b6b); }
-.post-card.tech:hover { border-color:rgba(255,45,149,0.4); box-shadow: 0 8px 30px rgba(0,0,0,0.4), var(--glow-pink); }
 .post-card.strategy::before { background:linear-gradient(90deg, var(--neon-green), #00ff88); }
 .post-card.strategy:hover { border-color:rgba(57,255,20,0.4); box-shadow: 0 8px 30px rgba(0,0,0,0.4), var(--glow-green); }
 .post-card h3 { font-size:1.1rem; margin-bottom:0.75rem; line-height:1.5; color:var(--text-primary); transition:color 0.3s; }
 .post-card:hover h3 { color:var(--neon-blue); }
-.post-card.tech:hover h3 { color:var(--neon-pink); }
 .post-card.strategy:hover h3 { color:var(--neon-green); }
 .post-card .summary { color:var(--text-secondary); font-size:0.88rem; margin-bottom:1rem; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; flex:1; }
 .post-meta { display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center; }
@@ -222,10 +214,29 @@ body::after {
   border:1px solid rgba(0,212,255,0.15);
   letter-spacing:0.3px;
 }
-.tag.tech { background:rgba(255,45,149,0.08); color:var(--neon-pink); border-color:rgba(255,45,149,0.15); }
 .tag.strategy { background:rgba(57,255,20,0.08); color:var(--neon-green); border-color:rgba(57,255,20,0.15); }
 .date { color:var(--text-secondary); font-size:0.78rem; }
 .reading-time { color:var(--text-secondary); font-size:0.78rem; margin-left:0.5rem; }
+.hero-banner { background:linear-gradient(135deg,rgba(17,24,39,0.95),rgba(10,14,23,0.98)); border-bottom:1px solid rgba(0,212,255,0.15); padding:1.2rem 2rem 1rem; }
+.hero-inner { max-width:1200px; margin:0 auto; display:flex; align-items:center; gap:1.2rem; flex-wrap:wrap; }
+.hero-avatar { font-size:2.4rem; line-height:1; }
+.hero-name { font-size:1.2rem; font-weight:600; color:var(--text-primary); margin:0; }
+.hero-tagline { font-size:0.8rem; color:var(--text-secondary); margin:0.15rem 0 0; }
+.hero-stats { display:flex; gap:1.5rem; margin-left:auto; }
+.hero-stat { text-align:center; }
+.hs-val { display:block; font-size:1.3rem; font-weight:700; color:var(--neon-blue); font-family:monospace; }
+.hs-label { display:block; font-size:0.65rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; }
+@media(max-width:768px) {
+  .hero-banner { padding:0.8rem 1rem; }
+  .hero-avatar { font-size:1.8rem; }
+  .hero-name { font-size:1rem; }
+  .hero-stats { width:100%; justify-content:space-around; margin-left:0; margin-top:0.5rem; }
+  .hs-val { font-size:1rem; }
+}
+@media(max-width:480px) {
+  .hero-stats { gap:0.8rem; }
+  .hs-val { font-size:0.9rem; }
+}
 .search-container { display:flex; align-items:center; gap:0.5rem; position:relative; }
 .search-input {
   background:rgba(26,34,54,0.9);
@@ -241,6 +252,7 @@ body::after {
 .search-input:focus { border-color:var(--neon-blue); box-shadow:var(--glow-blue); width:260px; }
 .search-input::placeholder { color:var(--text-secondary); }
 .search-icon { position:absolute; left:0.7rem; top:50%; transform:translateY(-50%); font-size:0.9rem; pointer-events:none; color:var(--text-secondary); }
+.search-scope { font-size:0.72rem; color:var(--text-secondary); white-space:nowrap; opacity:0.7; margin-left:0.3rem; }
 @media (max-width:640px) {
   .search-container { width:100%; }
   .search-input { width:140px; }
@@ -313,6 +325,8 @@ body::after {
   position:relative;
   z-index:1;
 }
+.footer a { color:var(--neon-blue); text-decoration:none; margin:0 0.3rem; }
+.footer a:hover { text-decoration:underline; }
 /* 返回列表链接 */
 .back-link {
   display: inline-flex;
@@ -437,6 +451,7 @@ body::after {
 }
 .toc-list a:hover, .toc-list a.active { color:var(--neon-blue); border-left-color:var(--neon-blue); }
 .toc-list a.toc-h3 { padding-left:1.4rem; font-size:0.75rem; }
+.toc-empty-hint { font-size:0.72rem; color:var(--text-secondary); opacity:0.5; padding:0.5rem 0.6rem; }
 /* ===== 标签云 ===== */
 .tag-cloud { display:flex; flex-wrap:wrap; gap:0.5rem; margin:1.5rem 0 0.5rem; justify-content:center; }
 .tag-cloud .tag { cursor:pointer; transition:all 0.3s; white-space:nowrap; user-select:none; }
@@ -604,8 +619,11 @@ body::after {
 .sim-loading { text-align:center; padding:3rem 1rem; color:var(--text-secondary); font-size:1.1rem; }
 .sim-error { text-align:center; padding:3rem 1rem; color:var(--neon-pink); }
 .sim-dashboard { animation:fadeIn 0.4s ease; }
+.sim-strategy-status { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1rem; padding:0.5rem 0.8rem; background:rgba(0,212,255,0.04); border-radius:8px; font-size:0.78rem; font-family:monospace; color:var(--text-secondary); }
+.sim-strategy-status .ss-dot { width:7px; height:7px; border-radius:50%; display:inline-block; margin-right:0.3rem; }
+.sim-strategy-status .ss-dot.on { background:var(--neon-green); box-shadow:0 0 6px rgba(57,255,20,0.4); }
+.sim-strategy-status .ss-dot.off { background:#ff4444; }
 @keyframes fadeIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
-/* 概览卡片 */
 .sim-dashboard-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin-bottom:1.5rem; }
 .sim-card { background:var(--bg-card); border:1px solid var(--border-color); border-radius:12px; padding:1.2rem 1.5rem; position:relative; overflow:hidden; transition:all 0.3s; }
 .sim-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
@@ -653,15 +671,30 @@ body::after {
   </div>
 </header>
 
+<div class="hero-banner" id="heroBanner">
+  <div class="hero-inner">
+    <div class="hero-avatar">⚡</div>
+    <div class="hero-text">
+      <h1 class="hero-name">熊忠伟</h1>
+      <p class="hero-tagline">量化交易者 · 实盘记录 · 策略迭代</p>
+    </div>
+    <div class="hero-stats" id="heroStats">
+      <div class="hero-stat"><span class="hs-val">13</span><span class="hs-label">篇文章</span></div>
+      <div class="hero-stat"><span class="hs-val" id="heroDays">—</span><span class="hs-label">运行天数</span></div>
+      <div class="hero-stat"><span class="hs-val">2</span><span class="hs-label">Tab分类</span></div>
+    </div>
+  </div>
+</div>
+
 <div class="search-container">
   <span class="search-icon">🔍</span>
-  <input type="text" class="search-input" placeholder="搜索文章..." oninput="searchPosts(this.value)">
+  <input type="text" class="search-input" placeholder="搜索当前分类..." oninput="searchPosts(this.value)">
+  <span class="search-scope" id="searchScope"></span>
 </div>
 
 <div class="module-tabs">
   <div class="module-tab active-quant" data-module="quant" onclick="filterModule('quant', this)">📈 量化交易笔记</div>
-  <div class="module-tab" data-module="tech" onclick="filterModule('tech', this)">💻 技术碎碎念</div>
-  <div class="module-tab" data-module="strategy" onclick="filterModule('strategy', this)">🤖 策略更新日志</div>
+    <div class="module-tab" data-module="strategy" onclick="filterModule('strategy', this)">🤖 策略更新日志</div>
   <div class="module-tab" onclick="showSimulation()">🧪 模拟交易</div>
   <div class="module-tab" onclick="showAbout()">👤 关于</div>
 </div>
@@ -678,6 +711,7 @@ body::after {
     <div class="sim-loading" id="simLoading">⏳ 加载模拟交易数据...</div>
     <div class="sim-error" id="simError" style="display:none;">⚠️ 无法加载模拟数据，请稍后重试</div>
     <div class="sim-dashboard" id="simDashboard" style="display:none;">
+      <div class="sim-strategy-status" id="simStrategyStatus"></div>
       <div class="sim-dashboard-cards" id="simCards"></div>
       <div class="sim-chart-container" id="simChartContainer"></div>
       <div class="sim-section">
@@ -692,7 +726,7 @@ body::after {
   </div>
 </div>
 
-<div class="footer">© 2026 熊忠伟 · xzw33.top · v3.9 · 实盘记录中</div>
+<div class="footer">© 2026 熊忠伟 · xzw33.top · v3.10 · <a href="https://github.com/xzw0606/xzw33.top" target="_blank" rel="noopener">GitHub</a> · <a href="/rss.xml">RSS</a></div>
 
 <button class="back-to-top" id="backToTop" onclick="scrollToTop()" title="回到顶部">⬆</button>
 
@@ -705,17 +739,13 @@ const POSTS = [
     date: "2026-06-17",
     tags: ["策略更新", "v3.9"],
     summary: "# VERSION: 2026-06-17 v3.9.50 — 方案C: ATR追踪止损 + EMA死叉止盈",
-    content: `## 策略版本 v3.9 (2026-06-17)
-
-### 核心更新
-# VERSION: 2026-06-17 v3.9.50 — 方案C: ATR追踪止损 + EMA死叉止盈
-
-### 文件变更
-- `config.py`
-
----
-> 策略持续迭代中，每周更新记录。
-`
+    content: '<h2>策略版本 v3.9 (2026-06-17)</h2>'+
+      '<h3>核心更新</h3>'+
+      '<p>VERSION: 2026-06-17 v3.9.50 — 方案C: ATR追踪止损 + EMA死叉止盈</p>'+
+      '<h3>文件变更</h3>'+
+      '<ul><li><code>config.py</code></li></ul>'+
+      '<hr>'+
+      '<blockquote>策略持续迭代中，每周更新记录。</blockquote>'
   },
   {
     id: "strategy-update-20260605-v39",
@@ -724,17 +754,13 @@ const POSTS = [
     date: "2026-06-05",
     tags: ["策略更新", "v3.9"],
     summary: "# VERSION: 2026-06-05 v3.9.48 — 手动仓位不接管止损 — EMA缓冲0.2%+冷却30min — TP1/SL1出场",
-    content: `## 策略版本 v3.9 (2026-06-05)
-
-### 核心更新
-# VERSION: 2026-06-05 v3.9.48 — 手动仓位不接管止损 — EMA缓冲0.2%+冷却30min — TP1/SL1出场
-
-### 文件变更
-- `config.py`
-
----
-> 策略持续迭代中，每周更新记录。
-`
+    content: '<h2>策略版本 v3.9 (2026-06-05)</h2>'+
+      '<h3>核心更新</h3>'+
+      '<p>VERSION: 2026-06-05 v3.9.48 — 手动仓位不接管止损 — EMA缓冲0.2%+冷却30min — TP1/SL1出场</p>'+
+      '<h3>文件变更</h3>'+
+      '<ul><li><code>config.py</code></li></ul>'+
+      '<hr>'+
+      '<blockquote>策略持续迭代中，每周更新记录。</blockquote>'
   },
   {
     id: "strategy-update-20260531-v39",
@@ -743,18 +769,14 @@ const POSTS = [
     date: "2026-05-31",
     tags: ["策略更新", "v3.9"],
     summary: "持仓管理模块 - 单仓版本 VERSION: 2026-05-31 v3.9.31",
-    content: `## 策略版本 v3.9 (2026-05-31)
-
-### 核心更新
-持仓管理模块 - 单仓版本 VERSION: 2026-05-31 v3.9.31
-
-### 文件变更
-- `manager.py`
-
----
-> 策略持续迭代中，每周更新记录。
-`
-  }
+    content: '<h2>策略版本 v3.9 (2026-05-31)</h2>'+
+      '<h3>核心更新</h3>'+
+      '<p>持仓管理模块 - 单仓版本 VERSION: 2026-05-31 v3.9.31</p>'+
+      '<h3>文件变更</h3>'+
+      '<ul><li><code>manager.py</code></li></ul>'+
+      '<hr>'+
+      '<blockquote>策略持续迭代中，每周更新记录。</blockquote>'
+  },
 // ===== 量化交易笔记（真实内容）=====
   {
     id:"momentum-strategy-architecture",
@@ -867,20 +889,20 @@ const POSTS = [
       '<p>从候选池中选出信号最强的币开仓。如果候选池为空（所有币都被过滤了），则不交易。</p>'
   },
 
-  // ===== 技术碎碎念（真实项目）=====
+  // ===== 量化交易笔记（含基础设施/部署类）=====
   {
     id:"xzw33-top-build-log",
     title:"xzw33.top 从0到上线全记录",
     date:"2026-06-17",
     tags:["博客","上线","Nginx"],
     summary:"个人博客 xzw33.top 从开发到部署上线的完整过程：纯HTML单文件、赛博朋克风格、Nginx配置、SSL证书、安全加固。",
-    module:"tech",
+    module:"quant",
     content:'<h2>需求</h2>'+
       '<p>需要一个个人博客，记录量化交易实盘和技术方案。要求：</p>'+
       '<ul>'+
         '<li>纯HTML单文件（CSS/JS全内联），部署简单</li>'+
         '<li>赛博朋克暗色风格</li>'+
-        '<li>三个模块：量化交易笔记、技术碎碎念、策略更新日志</li>'+
+        '<li>两个模块：量化交易笔记、策略更新日志</li>'+
         '<li>部署到 xzw33.top（已有域名，DNS在阿里云）</li>'+
       '</ul>'+
       '<h2>开发</h2>'+
@@ -910,7 +932,7 @@ const POSTS = [
     date:"2026-06-17",
     tags:["安全","Nginx","Linux"],
     summary:"对 xzw33.top 服务器进行完整安全加固：CSP头、隐藏版本号、security.txt、频率限制、隐藏文件保护。",
-    module:"tech",
+    module:"quant",
     content:'<h2>初始状态</h2>'+
       '<p>扫描发现的问题：</p>'+
       '<ul>'+
@@ -949,7 +971,7 @@ const POSTS = [
     date:"2026-06-02",
     tags:["服务器","HK","量化"],
     summary:"在香港阿里云服务器上搭建Python量化交易系统的完整过程：环境配置、目录结构、systemd守护进程。",
-    module:"tech",
+    module:"quant",
     content:'<h2>服务器信息</h2>'+
       '<table><tr><th>项目</th><th>内容</th></tr>'+
         '<tr><td>IP</td><td>8.210.178.248</td></tr>'+
@@ -970,126 +992,12 @@ const POSTS = [
       '<pre>ufw allow from 14.111.240.14 to any port 22\nufw enable</pre>'
   },
   {
-    id:"wechat-miniprogram-training-camp",
-    title:"微信小程序训练营系统方案（真实售前）",
-    date:"2026-06-12",
-    tags:["微信小程序","训练营","方案"],
-    summary:"为教育机构设计微信小程序训练营系统的真实售前方案：功能模块、技术实现、商业模式。",
-    module:"tech",
-    content:'<h2>客户背景</h2>'+
-      '<p>教育机构希望将线下训练营搬到微信小程序上，实现：课程售卖、在线学习、作业提交、学习进度跟踪。</p>'+
-      '<h2>功能模块</h2>'+
-      '<h3>学员端</h3>'+
-      '<ul>'+
-        '<li>课程列表/详情页</li>'+
-        '<li>视频播放（防快进、防录屏）</li>'+
-        '<li>作业提交（图片/视频上传）</li>'+
-        '<li>学习进度跟踪（完整记录每节课的完成状态）</li>'+
-        '<li>社群互动（评论、问答）</li>'+
-        '<li>支付集成（微信支付）</li>'+
-      '</ul>'+
-      '<h3>讲师端</h3>'+
-      '<ul>'+
-        '<li>课程发布/编辑</li>'+
-        '<li>作业批改（图片标注、文字反馈）</li>'+
-        '<li>直播安排通知</li>'+
-        '<li>数据看板（完课率、作业提交率、收入统计）</li>'+
-      '</ul>'+
-      '<h2>技术实现</h2>'+
-      '<table><tr><th>模块</th><th>技术选型</th></tr>'+
-        '<tr><td>前端</td><td>微信小程序原生开发（WXML + WXSS + JS）</td></tr>'+
-        '<tr><td>后端</td><td>Node.js + Express（或Python FastAPI）</td></tr>'+
-        '<tr><td>数据库</td><td>MongoDB（灵活Schema，适合课程内容）</td></tr>'+
-        '<tr><td>视频存储</td><td>腾讯云点播（VOD），支持加密、防下载</td></tr>'+
-        '<tr><td>支付</td><td>微信支付（JSAPI支付，小程序内直接调起）</td></tr>'+
-      '</table>'+
-      '<h2>防快进实现</h2>'+
-      '<p>视频播放器定期上报当前播放进度到后端，如果检测到用户跳跃播放（快进），则标记该课程为"未完成"，需要重新观看。</p>'+
-      '<p>同时用腾讯云VOD的<strong>私有加密</strong>，防止视频被下载后传播。</p>'+
-      '<h2>商业模式</h2>'+
-      '<table><tr><th>课程定价</th><th>分成比例</th></tr>'+
-        '<tr><td>199元（入门课）</td><td>讲师70% / 平台30%</td></tr>'+
-        '<tr><td>999元（进阶训练营，含批改）</td><td>讲师70% / 平台30%</td></tr>'+
-      '</table>'+
-      '<p>平台额外收入：广告、会员订阅、企业定制培训。</p>'
-  },
-  {
-    id:"traditional-medicine-agency",
-    title:"某中药品牌重庆区域代理方案",
-    date:"2026-06-15",
-    tags:["代理","商业方案","重庆"],
-    summary:"某中药品牌在重庆的区域代理计划：100家门店、单店年营收≥100万、汇付天下T+0结算、加盟条件、推广策略。",
-    module:"tech",
-    content:'<h2>项目背景</h2>'+
-      '<p>重庆作为人口大市，中药消费市场潜力巨大。本方案为某中药品牌在重庆的区域代理计划。</p>'+
-      '<h2>商业模式</h2>'+
-      '<table><tr><th>指标</th><th>目标</th></tr>'+
-        '<tr><td>门店数量</td><td>100家（1年内部署）</td></tr>'+
-        '<tr><td>单店年营收</td><td>≥100万元</td></tr>'+
-        '<tr><td>总年营收</td><td>≥1亿元</td></tr>'+
-        '<tr><td>支付方案</td><td>汇付天下T+0结算</td></tr>'+
-      '</table>'+
-      '<h2>加盟条件</h2>'+
-      '<ul>'+
-        '<li>具备50万以上启动资金</li>'+
-        '<li>有零售/医药行业经验优先</li>'+
-        '<li>认同品牌理念，接受统一管理</li>'+
-        '<li>店面位置要求：人流量大的社区/商圈</li>'+
-      '</ul>'+
-      '<h2>推广策略</h2>'+
-      '<ol>'+
-        '<li><strong>社区地推</strong>：在目标社区开展免费中药辨识活动，建立信任</li>'+
-        '<li><strong>KOL合作</strong>：与本地健康类KOL合作，内容营销</li>'+
-        '<li><strong>会员体系</strong>：消费积分、生日礼遇、老带新奖励</li>'+
-        '<li><strong>线上商城</strong>：小程序下单，同城配送</li>'+
-      '</ol>'+
-      '<h2>风险控制</h2>'+
-      '<p>主要风险：库存积压、加盟商流失。</p>'+
-      '<p>对策：T+0结算保证现金流；统一供应链降低库存风险；定期培训提升加盟商忠诚度。</p>'
-  },
-  {
-    id:"veteran-drone-platform",
-    title:"退役军人无人机就业服务平台方案",
-    date:"2026-06-10",
-    tags:["无人机","退役军人","服务平台"],
-    summary:"为退役军人提供无人机操作培训、考证、就业推荐的一站式服务平台。对接退役军人事务局、无人机企业、应用单位。",
-    module:"tech",
-    content:'<h2>平台定位</h2>'+
-      '<p>为退役军人提供无人机操作培训、考证、就业推荐的一站式服务平台。</p>'+
-      '<p>合作单位：退役军人事务局、无人机生产企业、测绘/农业/消防等应用单位。</p>'+
-      '<h2>功能模块</h2>'+
-      '<h3>学员端</h3>'+
-      '<ul>'+
-        '<li>在线报名（身份信息认证、退役证上传）</li>'+
-        '<li>课程学习（理论+模拟+实操视频）</li>'+
-        '<li>模拟考试（题库练习、模拟飞行）</li>'+
-        '<li>就业推荐（岗位匹配、简历投递、面试安排）</li>'+
-      '</ul>'+
-      '<h3>管理端</h3>'+
-      '<ul>'+
-        '<li>学员管理（报名审核、学习进度跟踪）</li>'+
-        '<li>考试安排（场次管理、成绩录入）</li>'+
-        '<li>企业对接（岗位发布、推荐名单）</li>'+
-        '<li>数据报表（培训人数、就业率、满意度）</li>'+
-      '</ul>'+
-      '<h2>合作模式</h2>'+
-      '<table><tr><th>合作方</th><th>职责</th><th>收益</th></tr>'+
-        '<tr><td>退役军人事务局</td><td>政策扶持、场地提供、宣传推广</td><td>提升退役军人就业率</td></tr>'+
-        '<tr><td>无人机企业</td><td>设备供应、技术支持、考证授权</td><td>设备销售、培训分成</td></tr>'+
-        '<tr><td>应用单位（测绘/农业等）</td><td>就业岗位提供、实际需求反馈</td><td>获得熟练飞手</td></tr>'+
-      '</table>'+
-      '<h2>技术实现</h2>'+
-      '<p>前端：微信小程序（报名、学习、模拟考试）</p>'+
-      '<p>后端：Python + FastAPI（高并发支持考试系统）</p>'+
-      '<p>数据库：PostgreSQL（事务能力强，适合考试系统）</p>'
-  },
-  {
     id:"stock-screener-dev-log",
     title:"A股量化筛选工具开发记录",
     date:"2026-06-05",
     tags:["A股","量化","akshare"],
     summary:"基于akshare库的A股自动化筛选工具开发记录：量比、换手率、市值过滤条件，每日盘前自动运行。",
-    module:"tech",
+    module:"quant",
     content:'<h2>开发背景</h2>'+
       '<p>手动筛选A股效率低，需要一套自动化的量化筛选工具，根据技术指标和基本面快速找到符合条件的股票。</p>'+
       '<h2>技术选型</h2>'+
@@ -1111,52 +1019,6 @@ const POSTS = [
       '</ul>'
   },
   // ===== 旅游平台方案 =====
-  {
-    id:"travel-platform-solution",
-    title:"旅游定制平台技术方案",
-    date:"2026-06-15",
-    tags:["旅游","平台方案","定制游"],
-    summary:"某旅游定制平台技术方案：用户画像匹配、智能行程生成、供应商对接、支付结算一体化。支持自由行/跟团/定制三种模式。",
-    module:"tech",
-    content:'<h2>项目背景</h2>'+
-      '<p>传统旅游平台以标品为主，无法满足高端用户个性化需求。本方案为某旅游平台设计定制游技术架构。</p>'+
-      '<h2>平台定位</h2>'+
-      '<table><tr><th>模式</th><th>特点</th><th>毛利</th></tr>'+
-        '<tr><td>自由行</td><td>机票+酒店+接送，用户自选</td><td>5-8%</td></tr>'+
-        '<tr><td>跟团游</td><td>标准团，批量采购</td><td>8-12%</td></tr>'+
-        '<tr><td>定制游</td><td>1对1行程设计，专属服务</td><td>15-25%</td></tr>'+
-      '</table>'+
-      '<h2>核心功能模块</h2>'+
-      '<pre>┌─────────────────────────────────────┐\n│          旅游定制平台V1.0          │\n├─────────────────────────────────────┤\n│  用户端（微信小程序）               │\n│  ├─ 智能问卷（目的地/预算/偏好）    │\n│  ├─ AI行程生成（GPT接口）          │\n│  ├─ 实时报价（供应商API对接）      │\n│  └─ 订单管理（支付/合同/保险）    │\n├─────────────────────────────────────┤\n│  顾问端（Web管理后台）             │\n│  ├─ 客户需求审核                   │\n│  ├─ 行程微调（人工干预AI生成）    │\n│  ├─ 供应商派单                     │\n│  └─ 佣金结算                       │\n├─────────────────────────────────────┤\n│  供应商端（API/后台）               │\n│  ├─ 资源库存管理（酒店/门票/车辆）│\n│  ├─ 订单接收与确认                 │\n│  └─ 对账结算                       │\n└─────────────────────────────────────┘</pre>'+
-      '<h2>技术架构</h2>'+
-      '<table><tr><th>层级</th><th>技术选型</th></tr>'+
-        '<tr><td>前端</td><td>微信小程序（用户端）、Vue3+Vite（顾问端）</td></tr>'+
-        '<tr><td>后端</td><td>Python FastAPI（高并发接口）、PostgreSQL（主库）</td></tr>'+
-        '<tr><td>AI层</td><td>GPT-4o（行程生成）、Claude（客服对话）</td></tr>'+
-        '<tr><td>支付</td><td>微信支付（JSAPI）、支付宝、银联</td></tr>'+
-        '<tr><td>部署</td><td>Docker + K8s、阿里云（杭州节点）</td></tr>'+
-      '</table>'+
-      '<h2>商业模式</h2>'+
-      '<ul>'+
-        '<li><strong>佣金模式</strong>：向供应商收取8-15%佣金（酒店/地接/门票）</li>'+
-        '<li><strong>服务费模式</strong>：向用户收取定制费（行程设计费500-2000元/单）</li>'+
-        '<li><strong>会员模式</strong>：年费会员（999元/年，定制费5折 + 专属顾问）</li>'+
-      '</ul>'+
-      '<h2>开发进度</h2>'+
-      '<table><tr><th>阶段</th><th>周期</th><th>交付物</th></tr>'+
-        '<tr><td>需求调研</td><td>Week 1-2</td><td>PRD文档、原型图（Figma）</td></tr>'+
-        '<tr><td>MVP开发</td><td>Week 3-8</td><td>小程序V1.0、顾问后台V1.0</td></tr>'+
-        '<tr><td>供应商对接</td><td>Week 9-10</td><td>接入3家酒店供应商、2家地接社</td></tr>'+
-        '<tr><td>内测</td><td>Week 11-12</td><td>100个种子用户、收集反馈</td></tr>'+
-        '<tr><td>正式上线</td><td>Week 13</td><td>全量发布、市场推广</td></tr>'+
-      '</table>'+
-      '<h2>风险提示</h2>'+
-      '<ul>'+
-        '<li>供应商资源稳定性（热门目的地酒店库存波动大）</li>'+
-        '<li>合规风险（旅游资质、保险、合同电子化）</li>'+
-        '<li>季节性波动（Q3/Q4是旺季，Q1/Q2淡季需控制成本）</li>'+
-      '</ul>'
-  },
   // ===== 策略更新日志（真实PnL数据）=====
   {
     id:"strategy-update-2026-06-08",
@@ -1290,6 +1152,7 @@ function showAbout() {
 
 function filterModule(module, el) {
   currentModule = module;
+  document.getElementById('searchScope').textContent = module === 'quant' ? '量化交易笔记' : '策略更新日志';
   searchQuery = '';
   activeTag = null;
   sortMode = 'latest';
@@ -1377,7 +1240,6 @@ function renderPosts() {
 function renderAbout() {
   const page = document.getElementById('about-page');
   const quantCount = POSTS.filter(p => p.module === 'quant').length;
-  const techCount = POSTS.filter(p => p.module === 'tech').length;
   const strategyCount = POSTS.filter(p => p.module === 'strategy').length;
   const totalPosts = POSTS.length;
 
@@ -1433,8 +1295,8 @@ function renderAbout() {
       '<span class="about-tech-tag">Python</span>' +
       '<span class="about-tech-tag">Binance API</span>' +
       '<span class="about-tech-tag">Nginx</span>' +
-      '<span class="about-tech-tag">微信小程序</span>' +
-      '<span class="about-tech-tag">Chart.js</span>' +
+      '<span class="about-tech-tag">策略回测</span>' +
+      '<span class="about-tech-tag">数据分析</span>' +
       '<span class="about-tech-tag">Alibaba Cloud</span>' +
       '<span class="about-tech-tag">Linux</span>' +
       '<span class="about-tech-tag">HTML/CSS/JS</span>' +
@@ -1449,11 +1311,6 @@ function renderAbout() {
         '<div class="about-module-label">量化交易笔记</div>' +
       '</div>' +
       '<div class="about-module-item">' +
-        '<div class="about-module-icon">💡</div>' +
-        '<div class="about-module-count">' + techCount + ' 篇</div>' +
-        '<div class="about-module-label">技术碎碎念</div>' +
-      '</div>' +
-      '<div class="about-module-item">' +
         '<div class="about-module-icon">📊</div>' +
         '<div class="about-module-count">' + strategyCount + ' 篇</div>' +
         '<div class="about-module-label">策略更新日志</div>' +
@@ -1461,7 +1318,7 @@ function renderAbout() {
     '</div>' +
     // 页脚
     '<div class="about-footer">' +
-      '🟢 交易机器人 24h 运行 · <a href="#" onclick="event.preventDefault(); showHome()">返回博客</a> · © 2026 xzw33.top' +
+      '🟢 模拟交易运行中 · <a href="#" onclick="event.preventDefault(); showHome()">返回博客</a> · © 2026 xzw33.top' +
     '</div>';
 }
 
@@ -1476,7 +1333,7 @@ function openPost(postId) {
   document.getElementById('tagCloud').style.display = 'none';
   const detail = document.getElementById('post-detail');
   detail.classList.add('active');
-  const moduleName = post.module === 'quant' ? '量化交易笔记' : post.module === 'tech' ? '技术碎碎念' : '策略更新日志';
+  const moduleName = post.module === 'quant' ? '量化交易笔记' : '策略更新日志';
   
   // 查找上一篇/下一篇文章
   const modulePosts = POSTS.filter(p => p.module === post.module);
@@ -1567,11 +1424,17 @@ window.addEventListener('load', handleHash);
 
 // 初始化
 renderPosts();
+document.getElementById('searchScope').textContent = '量化交易笔记';
 
 // 渲染盈亏曲线图（纯Canvas — 赛博朋克视觉优化）
 function renderPnlChart(canvasId, dates, pnlData) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
+  if (!pnlData || pnlData.length === 0 || !dates || dates.length === 0) {
+    const wrapper = canvas.closest('.pnl-chart-wrapper');
+    if (wrapper) wrapper.innerHTML = '<div style="text-align:center;padding:3rem 1rem;color:var(--text-secondary);font-size:0.9rem;">📊 暂无盈亏数据</div>';
+    return;
+  }
   const wrapper = canvas.closest('.pnl-chart-wrapper');
   const tooltip = wrapper ? wrapper.querySelector('.pnl-chart-tooltip') : null;
 
@@ -1804,7 +1667,7 @@ function renderTagCloud() {
   const tags = Object.entries(tagCount).sort((a,b) => b[1]-a[1]);
   if (tags.length === 0) { el.innerHTML = ''; return; }
   el.innerHTML = '<span style="font-size:0.75rem;color:var(--text-secondary);margin-right:0.3rem;">标签:</span>' +
-    tags.map(([t,c]) => '<span class="tag '+(currentModule==='tech'?'tech':currentModule==='strategy'?'strategy':'')+
+    tags.map(([t,c]) => '<span class="tag '+(currentModule==='strategy'?'strategy':'')+
     (activeTag===t?' active-tag':'')+'" onclick="toggleTag(\''+escapeHtml(t)+'\')">'+t+' ('+c+')</span>').join('');
 }
 function toggleTag(tag) {
@@ -1828,7 +1691,7 @@ function handleReadingProgress() {
 function generateTOC(content) {
   const h2Matches = [...content.matchAll(/<h2[^>]*>(.*?)<\/h2>/g)];
   const h3Matches = [...content.matchAll(/<h3[^>]*>(.*?)<\/h3>/g)];
-  if (h2Matches.length + h3Matches.length < 2) return '';
+  if (h2Matches.length + h3Matches.length < 2) return '<div class="toc-panel toc-empty"><div class="toc-title">📑 目录</div><div class="toc-empty-hint">本文较短，无目录</div></div>';
   let toc = '<div class="toc-panel"><div class="toc-title">📑 目录</div><ul class="toc-list">';
   let idx = 0;
   // 构建章节索引
@@ -1954,6 +1817,18 @@ function renderSimulationDashboard() {
   if (!simData) return;
   document.getElementById('simLoading').style.display = 'none';
   document.getElementById('simDashboard').style.display = 'block';
+
+  // 策略状态行
+  const now = new Date();
+  const updatedAt = simData.updated_ts ? new Date(simData.updated_ts * 1000) : null;
+  const minsAgo = updatedAt ? Math.floor((now - updatedAt) / 60000) : null;
+  const statusRunning = minsAgo !== null && minsAgo < 30;
+  const version = simData.version || 'v3.9';
+  document.getElementById('simStrategyStatus').innerHTML =
+    '<span class="ss-item"><span class="ss-dot ' + (statusRunning ? 'on' : 'off') + '"></span>' +
+    (statusRunning ? '策略运行中' : '数据可能停更') + '</span>' +
+    '<span class="ss-item">📌 版本: ' + version + '</span>' +
+    (minsAgo !== null ? '<span class="ss-item">🕐 ' + minsAgo + '分钟前更新</span>' : '');
 
   const a = simData.account || {};
   const pnlClass = a.total_pnl >= 0 ? 'up' : 'down';
