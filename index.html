@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- xzw33.top | blog.html | Version: v3.10 | Build: 2026-06-17 -->
+<!-- xzw33.top | blog.html | Version: v3.9 | Build: 2026-06-17 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -637,34 +637,6 @@ body::after {
 .sim-table .side-buy { color:var(--neon-green); font-weight:600; }
 .sim-table .side-sell { color:var(--neon-pink); font-weight:600; }
 .sim-updated { text-align:right; font-size:0.7rem; color:var(--text-secondary); margin-top:0.8rem; opacity:0.7; }
-/* 时间范围选择器 */
-.sim-range-tabs { display:flex; gap:0.4rem; margin-bottom:0.8rem; flex-wrap:wrap; }
-.sim-range-tab { padding:0.3rem 0.75rem; border-radius:6px; font-size:0.73rem; cursor:pointer; border:1px solid var(--border-color); background:transparent; color:var(--text-secondary); transition:all 0.2s; font-family:monospace; }
-.sim-range-tab:hover { border-color:var(--neon-blue); color:var(--text-primary); }
-.sim-range-tab.active { background:rgba(0,212,255,0.12); border-color:var(--neon-blue); color:var(--neon-blue); box-shadow:0 0 8px rgba(0,212,255,0.15); }
-/* 绩效指标卡片 */
-.sim-card.card-sharpe::before { background:linear-gradient(90deg,#a855f7,#6366f1); }
-.sim-card.card-sortino::before { background:linear-gradient(90deg,#6366f1,#3b82f6); }
-.sim-card.card-mdd::before { background:linear-gradient(90deg,#ef4444,#f97316); }
-.sim-card.card-pf::before { background:linear-gradient(90deg,#f59e0b,#10b981); }
-.sim-card.card-exp::before { background:linear-gradient(90deg,#10b981,#06b6d4); }
-.sim-tooltip { border-bottom:1px dotted var(--neon-blue); cursor:help; }
-/* 表格可排序 */
-.sim-table th.sortable { cursor:pointer; user-select:none; }
-.sim-table th.sortable:hover { color:var(--neon-blue); }
-.sim-table th .sort-arrow { margin-left:0.3rem; font-size:0.65rem; opacity:0.5; }
-.sim-table th.sort-asc .sort-arrow, .sim-table th.sort-desc .sort-arrow { opacity:1; color:var(--neon-blue); }
-/* 每日复盘 */
-.sim-daily-review { background:var(--bg-card); border:1px solid var(--border-color); border-radius:12px; padding:1.2rem 1.5rem; margin-bottom:1.5rem; }
-.sim-daily-title { font-size:0.95rem; color:var(--neon-green); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; }
-.sim-daily-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:0.8rem; }
-.sim-daily-item { text-align:center; padding:0.7rem; background:rgba(0,0,0,0.2); border-radius:8px; border:1px solid rgba(255,255,255,0.03); }
-.sim-daily-item .di-val { font-size:1.2rem; font-weight:700; font-family:monospace; }
-.sim-daily-item .di-label { font-size:0.7rem; color:var(--text-secondary); margin-top:0.2rem; }
-/* 绩效信息提示 */
-.sim-metric-info { font-size:0.65rem; color:var(--text-secondary); margin-top:0.3rem; font-style:italic; }
-/* 无数据 */
-.sim-no-data { text-align:center; padding:1.5rem; color:var(--text-secondary); font-size:0.85rem; }
 .sim-empty { text-align:center; padding:2rem; color:var(--text-secondary); font-size:0.9rem; }
 </style>
 <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
@@ -706,37 +678,84 @@ body::after {
     <div class="sim-loading" id="simLoading">⏳ 加载模拟交易数据...</div>
     <div class="sim-error" id="simError" style="display:none;">⚠️ 无法加载模拟数据，请稍后重试</div>
     <div class="sim-dashboard" id="simDashboard" style="display:none;">
-      <!-- 概览卡片 -->
       <div class="sim-dashboard-cards" id="simCards"></div>
-      <!-- 绩效指标 -->
-      <div class="sim-dashboard-cards" id="simAnalyticsCards" style="margin-top:0;"></div>
-      <!-- 权益曲线 -->
-      <div class="sim-chart-container" id="simChartContainer">
-        <div class="sim-range-tabs" id="simRangeTabs"></div>
-      </div>
-      <!-- 每日复盘 -->
-      <div class="sim-daily-review" id="simDailyReview" style="display:none;"></div>
-      <!-- 当前持仓 -->
+      <div class="sim-chart-container" id="simChartContainer"></div>
       <div class="sim-section">
         <h3 class="sim-section-title">📊 当前持仓</h3>
         <div class="sim-table-wrap" id="simPositions"></div>
       </div>
-      <!-- 交易日志 -->
       <div class="sim-section">
-        <h3 class="sim-section-title">📋 交易日志 <span style="font-size:0.7rem;color:var(--text-secondary);font-weight:400">点击列头排序</span></h3>
+        <h3 class="sim-section-title">📋 已平仓记录</h3>
         <div class="sim-table-wrap" id="simTrades"></div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="footer">© 2026 熊忠伟 · xzw33.top · v3.10 · 实盘记录中</div>
+<div class="footer">© 2026 熊忠伟 · xzw33.top · v3.9 · 实盘记录中</div>
 
 <button class="back-to-top" id="backToTop" onclick="scrollToTop()" title="回到顶部">⬆</button>
 
 <script>
 const POSTS = [
-  // ===== 量化交易笔记（真实内容）=====
+    {
+    id: "strategy-update-20260617-v39",
+    module: "strategy",
+    title: "策略更新 v3.9 — # VERSION: 2026-06-17 v3.9.50 — 方案C: ATR追踪止损 + EMA",
+    date: "2026-06-17",
+    tags: ["策略更新", "v3.9"],
+    summary: "# VERSION: 2026-06-17 v3.9.50 — 方案C: ATR追踪止损 + EMA死叉止盈",
+    content: `## 策略版本 v3.9 (2026-06-17)
+
+### 核心更新
+# VERSION: 2026-06-17 v3.9.50 — 方案C: ATR追踪止损 + EMA死叉止盈
+
+### 文件变更
+- `config.py`
+
+---
+> 策略持续迭代中，每周更新记录。
+`
+  },
+  {
+    id: "strategy-update-20260605-v39",
+    module: "strategy",
+    title: "策略更新 v3.9 — # VERSION: 2026-06-05 v3.9.48 — 手动仓位不接管止损 — EMA缓冲0",
+    date: "2026-06-05",
+    tags: ["策略更新", "v3.9"],
+    summary: "# VERSION: 2026-06-05 v3.9.48 — 手动仓位不接管止损 — EMA缓冲0.2%+冷却30min — TP1/SL1出场",
+    content: `## 策略版本 v3.9 (2026-06-05)
+
+### 核心更新
+# VERSION: 2026-06-05 v3.9.48 — 手动仓位不接管止损 — EMA缓冲0.2%+冷却30min — TP1/SL1出场
+
+### 文件变更
+- `config.py`
+
+---
+> 策略持续迭代中，每周更新记录。
+`
+  },
+  {
+    id: "strategy-update-20260531-v39",
+    module: "strategy",
+    title: "策略更新 v3.9 — 持仓管理模块 - 单仓版本 VERSION: 2026-05-31 v3.9.31",
+    date: "2026-05-31",
+    tags: ["策略更新", "v3.9"],
+    summary: "持仓管理模块 - 单仓版本 VERSION: 2026-05-31 v3.9.31",
+    content: `## 策略版本 v3.9 (2026-05-31)
+
+### 核心更新
+持仓管理模块 - 单仓版本 VERSION: 2026-05-31 v3.9.31
+
+### 文件变更
+- `manager.py`
+
+---
+> 策略持续迭代中，每周更新记录。
+`
+  }
+// ===== 量化交易笔记（真实内容）=====
   {
     id:"momentum-strategy-architecture",
     title:"MomentumStrategy 系统架构详解",
@@ -948,7 +967,7 @@ const POSTS = [
       '<pre>systemctl status bian    # 查看状态\nsystemctl restart bian  # 重启\ntail -f /opt/bian/engine.log  # 查看日志</pre>'+
       '<h2>防火墙</h2>'+
       '<p>仅允许固定IP访问SSH（22端口），不开放0.0.0.0/0。</p>'+
-      '<pre>ufw allow from YOUR_IP to any port 22\nufw enable</pre>'
+      '<pre>ufw allow from 14.111.240.14 to any port 22\nufw enable</pre>'
   },
   {
     id:"wechat-miniprogram-training-camp",
@@ -1883,15 +1902,12 @@ function addHeadingAnchors() {
   const headings = document.querySelectorAll('.post-content h2, .post-content h3');
   headings.forEach((h, i) => { h.id = 'toc-'+i; });
 }
-// ===== 模拟交易模块 v3.10 =====
+// ===== 模拟交易模块 =====
 let simData = null;
-let analyticsData = null;
 let simLoading = false;
-let simTimeRange = 'all'; // '1d' | '1w' | '1m' | '3m' | 'all'
-let tradeSortCol = null;
-let tradeSortDir = 1;
 
 async function showSimulation() {
+  // 隐藏其他面板
   document.getElementById('posts-list').style.display = 'none';
   document.getElementById('post-detail').classList.remove('active');
   document.getElementById('about-page').style.display = 'none';
@@ -1900,7 +1916,13 @@ async function showSimulation() {
   document.querySelectorAll('.module-tab').forEach(tab => { tab.className = 'module-tab'; });
   currentPostId = null;
   history.pushState(null, null, '#/simulation');
-  document.getElementById('simulation-page').style.display = 'block';
+
+  // 显示模拟面板
+  const page = document.getElementById('simulation-page');
+  page.style.display = 'block';
+  document.getElementById('posts-list').style.display = 'none';
+
+  // 加载数据
   if (!simData && !simLoading) {
     await fetchSimulationData();
   } else if (simData) {
@@ -1913,17 +1935,11 @@ async function fetchSimulationData() {
   document.getElementById('simLoading').style.display = 'block';
   document.getElementById('simError').style.display = 'none';
   document.getElementById('simDashboard').style.display = 'none';
+
   try {
-    const ts = Date.now();
-    const [simResp, anaResp] = await Promise.all([
-      fetch('/simulation.json?t=' + ts),
-      fetch('/analytics.json?t=' + ts).catch(() => null)
-    ]);
-    if (!simResp.ok) throw new Error('HTTP ' + simResp.status);
-    simData = await simResp.json();
-    if (anaResp && anaResp.ok) {
-      analyticsData = await anaResp.json();
-    }
+    const resp = await fetch('/simulation.json?t=' + Date.now());
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    simData = await resp.json();
     renderSimulationDashboard();
   } catch (e) {
     document.getElementById('simLoading').style.display = 'none';
@@ -1938,6 +1954,7 @@ function renderSimulationDashboard() {
   if (!simData) return;
   document.getElementById('simLoading').style.display = 'none';
   document.getElementById('simDashboard').style.display = 'block';
+
   const a = simData.account || {};
   const pnlClass = a.total_pnl >= 0 ? 'up' : 'down';
   const pnlSign = a.total_pnl >= 0 ? '+' : '';
@@ -1945,168 +1962,63 @@ function renderSimulationDashboard() {
   // 概览卡片
   document.getElementById('simCards').innerHTML =
     '<div class="sim-card card-equity">' +
-      '<div class="sc-label">总权益</div><div class="sc-value" style="color:#00d4ff">$' + (a.total_equity || 0).toFixed(2) + '</div>' +
-      '<div class="sc-sub">初始 $' + (a.initial_balance || 0).toFixed(2) + ' | 保证金 $' + (a.total_margin || 0).toFixed(2) + '</div></div>' +
+      '<div class="sc-label">总权益</div>' +
+      '<div class="sc-value" style="color:#00d4ff">$' + (a.total_equity || 0).toFixed(2) + '</div>' +
+      '<div class="sc-sub">初始 $' + (a.initial_balance || 0).toFixed(2) + '</div>' +
+    '</div>' +
     '<div class="sim-card card-pnl">' +
-      '<div class="sc-label">累计盈亏</div><div class="sc-value ' + pnlClass + '">' + pnlSign + '$' + (a.total_pnl || 0).toFixed(2) + '</div>' +
-      '<div class="sc-sub">' + pnlSign + (a.total_pnl_pct || 0).toFixed(2) + '% | 已实现 $' + (a.total_realized || 0).toFixed(2) + '</div></div>' +
+      '<div class="sc-label">累计盈亏</div>' +
+      '<div class="sc-value ' + pnlClass + '">' + pnlSign + '$' + (a.total_pnl || 0).toFixed(2) + '</div>' +
+      '<div class="sc-sub">' + pnlSign + (a.total_pnl_pct || 0).toFixed(2) + '%</div>' +
+    '</div>' +
     '<div class="sim-card card-win">' +
-      '<div class="sc-label">胜率</div><div class="sc-value" style="color:#39ff14">' + (simData.win_rate || 0) + '%</div>' +
-      '<div class="sc-sub">' + (simData.wins || 0) + '赢 / ' + (simData.losses || 0) + '亏 | 共' + (simData.closed_count || 0) + '笔</div></div>' +
+      '<div class="sc-label">胜率</div>' +
+      '<div class="sc-value" style="color:#39ff14">' + (simData.win_rate || 0) + '%</div>' +
+      '<div class="sc-sub">' + (simData.wins || 0) + '赢 / ' + (simData.losses || 0) + '亏</div>' +
+    '</div>' +
     '<div class="sim-card card-pos">' +
-      '<div class="sc-label">当前持仓</div><div class="sc-value" style="color:#f59e0b">' + (simData.positions_count || 0) + '</div>' +
-      '<div class="sc-sub">浮盈 $' + (a.unrealized_pnl || 0).toFixed(2) + '</div></div>';
+      '<div class="sc-label">当前持仓</div>' +
+      '<div class="sc-value" style="color:#f59e0b">' + (simData.positions_count || 0) + '</div>' +
+      '<div class="sc-sub">浮盈 $' + (a.unrealized_pnl || 0).toFixed(2) + '</div>' +
+    '</div>';
 
-  // 绩效指标
-  renderAnalyticsCards();
+  // 权益曲线
+  renderEquityChart(simData.equity_history || []);
 
-  // 权益曲线 + 时间选择器
-  renderRangeTabs();
-  renderEquityChart();
-
-  // 每日复盘
-  renderDailyReview();
-
-  // 持仓表
+  // 当前持仓
   renderPositionsTable(simData.positions || []);
 
-  // 交易日志（可排序）
-  renderTradeJournal(simData.closed_trades || []);
+  // 已平仓
+  renderTradesTable(simData.closed_trades || []);
 
   // 更新时间
+  const footer = document.querySelector('.simulation-section .sim-updated');
   const timeStr = simData.updated_at || '';
-  const container = document.getElementById('simChartContainer');
-  let footer = container.parentNode.querySelector('.sim-updated');
-  if (!footer) {
-    footer = document.createElement('div');
-    footer.className = 'sim-updated';
-    document.getElementById('simDashboard').appendChild(footer);
+  if (footer) {
+    footer.textContent = '🕒 更新于 ' + timeStr;
+  } else {
+    const el = document.getElementById('simDashboard');
+    const existing = el.querySelector('.sim-updated');
+    if (existing) existing.remove();
+    el.insertAdjacentHTML('beforeend', '<div class="sim-updated">🕒 更新于 ' + timeStr + '</div>');
   }
-  footer.textContent = '🕒 更新于 ' + timeStr;
 }
 
-// ===== 绩效指标卡片 =====
-function renderAnalyticsCards() {
-  const container = document.getElementById('simAnalyticsCards');
-  if (!analyticsData) {
-    container.innerHTML = '<div class="sim-no-data">📊 分析数据将在每日收盘后生成</div>';
-    container.style.display = 'grid';
-    return;
-  }
-  const p = analyticsData.performance || {};
-  const tm = analyticsData.trade_metrics || {};
-
-  const fmtVal = (v, suffix, def) => v != null ? (v + suffix) : def;
-  const sharpeColor = (p.sharpe_ratio || 0) >= 0 ? '#39ff14' : '#ff2d95';
-  const sortinoColor = (p.sortino_ratio || 0) >= 0 ? '#39ff14' : '#ff2d95';
-  const expColor = (tm.expectancy || 0) >= 0 ? '#39ff14' : '#ff2d95';
-
-  container.innerHTML =
-    '<div class="sim-card card-sharpe">' +
-      '<div class="sc-label"><span class="sim-tooltip" title="年化夏普比率：收益/波动率。>0 表示超额收益，>1 良好，>2 优秀">夏普比率</span></div>' +
-      '<div class="sc-value" style="color:' + sharpeColor + '">' + fmtVal(p.sharpe_ratio, '', 'N/A') + '</div>' +
-      '<div class="sim-metric-info">年化' + fmtVal(p.annual_volatility_pct, '%', '') + '波动</div></div>' +
-    '<div class="sim-card card-sortino">' +
-      '<div class="sc-label"><span class="sim-tooltip" title="年化索提诺比率：只用下行波动计算，更关注亏损风险。>0 表示风险调整后正收益">索提诺比率</span></div>' +
-      '<div class="sc-value" style="color:' + sortinoColor + '">' + fmtVal(p.sortino_ratio, '', 'N/A') + '</div>' +
-      '<div class="sim-metric-info">' + (analyticsData.data_days || 0) + '天数据</div></div>' +
-    '<div class="sim-card card-mdd">' +
-      '<div class="sc-label"><span class="sim-tooltip" title="最大回撤：历史最高点到最低点的最大亏损幅度">最大回撤</span></div>' +
-      '<div class="sc-value" style="color:#ef4444">' + (p.max_drawdown ? '-' + p.max_drawdown.max_dd_pct + '%' : 'N/A') + '</div>' +
-      '<div class="sim-metric-info">' + (p.max_drawdown ? (p.max_drawdown.from || '') + ' ~ ' + (p.max_drawdown.to || '') : '') + '</div></div>' +
-    '<div class="sim-card card-pf">' +
-      '<div class="sc-label"><span class="sim-tooltip" title="盈亏比：总盈利/总亏损。>1 盈利覆盖亏损，>2 良好">盈亏比</span></div>' +
-      '<div class="sc-value" style="color:' + ((tm.profit_factor || 0) >= 1 ? '#39ff14' : '#ff2d95') + '">' + fmtVal(tm.profit_factor, '', 'N/A') + '</div>' +
-      '<div class="sim-metric-info">' + (tm.total_trades || 0) + '笔交易</div></div>' +
-    '<div class="sim-card card-exp">' +
-      '<div class="sc-label"><span class="sim-tooltip" title="期望值：每笔交易的平均盈亏($)。正值表示策略有正期望">期望值</span></div>' +
-      '<div class="sc-value" style="color:' + expColor + '">' + (tm.expectancy != null ? (tm.expectancy >= 0 ? '+' : '') + '$' + tm.expectancy : 'N/A') + '</div>' +
-      '<div class="sim-metric-info">连胜' + (tm.max_consecutive_wins || 0) + '/连败' + (tm.max_consecutive_losses || 0) + '</div></div>';
-  container.style.display = 'grid';
-}
-
-// ===== 时间范围选择器 =====
-function renderRangeTabs() {
-  const container = document.getElementById('simRangeTabs');
-  const ranges = [
-    { id: '1d', label: '1天' },
-    { id: '1w', label: '1周' },
-    { id: '1m', label: '1月' },
-    { id: '3m', label: '3月' },
-    { id: 'all', label: '全部' },
-  ];
-  container.innerHTML = ranges.map(r =>
-    '<button class="sim-range-tab' + (simTimeRange === r.id ? ' active' : '') + '" onclick="switchTimeRange(\'' + r.id + '\')">' + r.label + '</button>'
-  ).join('');
-}
-
-function switchTimeRange(range) {
-  simTimeRange = range;
-  renderRangeTabs();
-  renderEquityChart();
-}
-
-function getTimeRangeData() {
-  // 优先使用 analyticsData 的日级数据（更准确），fallback 到 simData 的分钟数据
-  let source = [];
-  if (analyticsData && analyticsData.equity_history && analyticsData.equity_history.length >= 2) {
-    source = analyticsData.equity_history.map(r => ({ t: r.date, equity: r.equity, ts: 0 }));
-  } else if (simData && simData.equity_history && simData.equity_history.length >= 2) {
-    source = simData.equity_history;
-  }
-  if (source.length < 2) return source;
-
-  const now = Date.now();
-  const filters = {
-    '1d': 86400000,
-    '1w': 604800000,
-    '1m': 2592000000,
-    '3m': 7776000000,
-    'all': Infinity
-  };
-  const cutoff = now - (filters[simTimeRange] || Infinity);
-  if (cutoff === -Infinity || simTimeRange === 'all') return source;
-
-  // 过滤：尝试用 ts 字段（分钟数据）或解析时间字符串（日数据）
-  const filtered = source.filter(r => {
-    if (r.ts > 0) return r.ts * 1000 >= cutoff;
-    // 日数据用日期字符串解析
-    const t = r.t || r.date || '';
-    const dt = new Date(t);
-    return dt.getTime() >= cutoff || 'all' === simTimeRange;
-  });
-  return filtered.length >= 2 ? filtered : source.slice(-20); // fallback: 至少显示最后20点
-}
-
-// ===== 权益曲线 =====
-function renderEquityChart() {
+function renderEquityChart(history) {
   const container = document.getElementById('simChartContainer');
   let canvas = container.querySelector('canvas');
   if (!canvas) {
     canvas = document.createElement('canvas');
     canvas.style.width = '100%';
     canvas.style.height = '300px';
-    // 插入在 range tabs 之后
-    const tabs = document.getElementById('simRangeTabs');
-    if (tabs) {
-      tabs.after(canvas);
-    } else {
-      container.appendChild(canvas);
-    }
+    container.appendChild(canvas);
   }
 
-  const history = getTimeRangeData();
   if (!history || history.length < 2) {
     canvas.style.display = 'none';
-    const existing = container.querySelector('.sim-empty');
-    if (!existing) {
-      container.insertAdjacentHTML('beforeend', '<div class="sim-empty">暂无权益历史数据</div>');
-    }
+    container.insertAdjacentHTML('beforeend', '<div class="sim-empty">暂无权益历史数据</div>');
     return;
   }
-  canvas.style.display = 'block';
-  const existingEmpty = container.querySelector('.sim-empty');
-  if (existingEmpty) existingEmpty.remove();
 
   const dpr = window.devicePixelRatio || 1;
   const rect = container.getBoundingClientRect();
@@ -2121,33 +2033,33 @@ function renderEquityChart() {
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, W, H);
 
-  const pad = { top: 16, right: 20, bottom: 40, left: 60 };
+  const pad = { top: 20, right: 20, bottom: 40, left: 60 };
   const pw = W - pad.left - pad.right;
   const ph = H - pad.top - pad.bottom;
 
+  // 数据范围
   const equities = history.map(h => h.equity);
   let minVal = Math.min(...equities);
   let maxVal = Math.max(...equities);
   const range = maxVal - minVal || 1;
-  minVal -= range * 0.12;
-  maxVal += range * 0.12;
-  if (minVal < 0) minVal *= 1.05;
+  minVal -= range * 0.1;
+  maxVal += range * 0.1;
+  if (minVal < 0) minVal *= 1.1;
 
-  // 背景
+  // 网格和Y轴
   ctx.fillStyle = '#0a0e17';
   ctx.fillRect(0, 0, W, H);
-
-  // 网格
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.lineWidth = 1;
   const gridLines = 6;
   for (let i = 0; i <= gridLines; i++) {
     const y = pad.top + (ph / gridLines) * i;
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-    ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(pad.left, y);
     ctx.lineTo(W - pad.right, y);
     ctx.stroke();
-    const val = maxVal - ((maxVal - minVal) / gridLines) * i;
+    // Y标签
+    const val = maxVal - (range * 1.2) / gridLines * i;
     ctx.fillStyle = '#64748b';
     ctx.font = '10px monospace';
     ctx.textAlign = 'right';
@@ -2155,10 +2067,10 @@ function renderEquityChart() {
   }
 
   // 初始资金参考线
-  const initEquity = (simData && simData.account) ? simData.account.initial_balance : 500;
-  const initY = pad.top + ((maxVal - initEquity) / (maxVal - minVal)) * ph;
-  if (initY >= pad.top && initY <= pad.top + ph) {
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  if (simData && simData.account && simData.account.initial_balance) {
+    const initEquity = simData.account.initial_balance;
+    const initY = pad.top + ((maxVal - initEquity) / (maxVal - minVal)) * ph;
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
     ctx.setLineDash([4, 4]);
     ctx.beginPath();
     ctx.moveTo(pad.left, initY);
@@ -2168,42 +2080,51 @@ function renderEquityChart() {
     ctx.fillStyle = '#64748b';
     ctx.font = '10px monospace';
     ctx.textAlign = 'left';
-    ctx.fillText('初始 $' + initEquity.toFixed(0), pad.left + 4, initY - 3);
+    ctx.fillText('初始 $' + initEquity.toFixed(0), pad.left + 4, initY - 4);
   }
 
   // 渐变填充
   const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + ph);
-  const isUp = history[history.length - 1].equity >= (history[0].equity || initEquity);
-  if (isUp) {
-    grad.addColorStop(0, 'rgba(57,255,20,0.12)');
-    grad.addColorStop(1, 'rgba(57,255,20,0)');
-  } else {
-    grad.addColorStop(0, 'rgba(255,45,149,0.12)');
-    grad.addColorStop(1, 'rgba(255,45,149,0)');
-  }
+  grad.addColorStop(0, 'rgba(0,212,255,0.15)');
+  grad.addColorStop(1, 'rgba(0,212,255,0)');
 
-  // 区域填充
+  // 绘制区域
+  ctx.beginPath();
+  const firstPt = history[0];
+  let x0 = pad.left + ((0) / (history.length - 1)) * pw;
+  let y0 = pad.top + ((maxVal - firstPt.equity) / (maxVal - minVal)) * ph;
+  ctx.moveTo(x0, pad.top + ph);
+  ctx.lineTo(x0, y0);
+
+  // 绘制线条和数据点
+  ctx.strokeStyle = '#00d4ff';
+  ctx.lineWidth = 2;
+  ctx.shadowColor = 'rgba(0,212,255,0.5)';
+  ctx.shadowBlur = 8;
   ctx.beginPath();
   for (let i = 0; i < history.length; i++) {
-    const x = pad.left + (i / Math.max(history.length - 1, 1)) * pw;
+    const x = pad.left + (i / (history.length - 1)) * pw;
     const y = pad.top + ((maxVal - history[i].equity) / (maxVal - minVal)) * ph;
-    if (i === 0) ctx.moveTo(x, pad.top + ph);
-    ctx.lineTo(x, y);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
   }
+  ctx.stroke();
+
+  // 区域填充
+  ctx.shadowBlur = 0;
   ctx.lineTo(pad.left + pw, pad.top + ph);
   ctx.closePath();
   ctx.fillStyle = grad;
   ctx.fill();
 
-  // 绘制曲线
-  const lineColor = isUp ? '#39ff14' : '#ff2d95';
-  ctx.strokeStyle = lineColor;
-  ctx.lineWidth = 2;
-  ctx.shadowColor = isUp ? 'rgba(57,255,20,0.4)' : 'rgba(255,45,149,0.4)';
-  ctx.shadowBlur = 6;
+  // 再次绘制线条（在填充上方）
+  ctx.strokeStyle = '#00d4ff';
+  ctx.lineWidth = 1.5;
+  ctx.shadowColor = 'rgba(0,212,255,0.3)';
+  ctx.shadowBlur = 5;
   ctx.beginPath();
   for (let i = 0; i < history.length; i++) {
-    const x = pad.left + (i / Math.max(history.length - 1, 1)) * pw;
+    const x = pad.left + (i / (history.length - 1)) * pw;
     const y = pad.top + ((maxVal - history[i].equity) / (maxVal - minVal)) * ph;
     if (i === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
@@ -2211,132 +2132,37 @@ function renderEquityChart() {
   ctx.stroke();
   ctx.shadowBlur = 0;
 
-  // 终点标记
+  // 起点和终点标记
   const lastIdx = history.length - 1;
-  const lx = pad.left + pw;
+  const lx = pad.left + (lastIdx / lastIdx) * pw;
   const ly = pad.top + ((maxVal - history[lastIdx].equity) / (maxVal - minVal)) * ph;
-  ctx.fillStyle = lineColor;
-  ctx.shadowColor = lineColor;
-  ctx.shadowBlur = 10;
+  // 终点
+  ctx.fillStyle = '#00d4ff';
+  ctx.shadowColor = 'rgba(0,212,255,0.8)';
+  ctx.shadowBlur = 12;
   ctx.beginPath();
-  ctx.arc(lx, ly, 4.5, 0, Math.PI * 2);
+  ctx.arc(lx, ly, 4, 0, Math.PI * 2);
   ctx.fill();
+  // 终点标注
   ctx.shadowBlur = 0;
-  ctx.fillStyle = lineColor;
+  ctx.fillStyle = '#00d4ff';
   ctx.font = 'bold 11px monospace';
   ctx.textAlign = 'left';
   ctx.fillText('$' + history[lastIdx].equity.toFixed(2), lx + 8, ly + 4);
 
-  // X轴标签
+  // X轴标签（简化）
   ctx.fillStyle = '#64748b';
-  ctx.font = '9px monospace';
+  ctx.font = '10px monospace';
   ctx.textAlign = 'center';
-  const maxLabels = Math.min(6, history.length);
-  const xStep = Math.max(1, Math.floor(history.length / maxLabels));
+  const xStep = Math.max(1, Math.floor(history.length / 5));
   for (let i = 0; i < history.length; i += xStep) {
-    const x = pad.left + (i / Math.max(history.length - 1, 1)) * pw;
-    const label = history[i].t || history[i].date || '';
-    const short = label.length > 10 ? label.slice(-8) : label;
+    const x = pad.left + (i / (history.length - 1)) * pw;
+    const label = history[i].t || '';
+    const short = label.length > 16 ? label.slice(-8) : label.slice(11, 16);
     ctx.fillText(short, x, H - pad.bottom + 16);
   }
 }
 
-// ===== 每日复盘 =====
-function renderDailyReview() {
-  const container = document.getElementById('simDailyReview');
-  if (!analyticsData || !analyticsData.daily_returns || analyticsData.daily_returns.length < 2) {
-    container.style.display = 'none';
-    return;
-  }
-  container.style.display = 'block';
-
-  const dr = analyticsData.daily_returns;
-  const today = dr[dr.length - 1];
-  const yesterday = dr.length >= 2 ? dr[dr.length - 2] : null;
-  const rets = dr.map(r => r.return);
-  const upDays = rets.filter(r => r > 0).length;
-  const downDays = rets.filter(r => r < 0).length;
-
-  const pnlClass = today.return >= 0 ? 'up' : 'down';
-  const pnlSign = today.return >= 0 ? '+' : '';
-
-  container.innerHTML =
-    '<div class="sim-daily-title">📅 每日复盘（最近' + dr.length + '天） | 今日: <span style="color:' + (today.return >= 0 ? '#39ff14' : '#ff2d95') + '">' + pnlSign + today.return_pct.toFixed(2) + '%</span></div>' +
-    '<div class="sim-daily-grid">' +
-      '<div class="sim-daily-item"><div class="di-val ' + pnlClass + '">' + pnlSign + today.return_pct.toFixed(2) + '%</div><div class="di-label">今日权益:' + today.date + '</div></div>' +
-      (yesterday ? '<div class="sim-daily-item"><div class="di-val" style="color:' + (yesterday.return >= 0 ? '#39ff14' : '#ff2d95') + '">' + (yesterday.return >= 0 ? '+' : '') + yesterday.return_pct.toFixed(2) + '%</div><div class="di-label">昨日:' + yesterday.date + '</div></div>' : '') +
-      '<div class="sim-daily-item"><div class="di-val" style="color:#00d4ff">' + (today.equity || 0).toFixed(2) + '</div><div class="di-label">当前权益($)</div></div>' +
-      '<div class="sim-daily-item"><div class="di-val" style="color:#39ff14">' + upDays + '</div><div class="di-label">上涨天数</div></div>' +
-      '<div class="sim-daily-item"><div class="di-val" style="color:#ff2d95">' + downDays + '</div><div class="di-label">下跌天数</div></div>' +
-    '</div>';
-}
-
-// ===== 交易日志（可排序） =====
-function renderTradeJournal(trades) {
-  const container = document.getElementById('simTrades');
-  if (!trades || trades.length === 0) {
-    container.innerHTML = '<div class="sim-empty">暂无平仓记录</div>';
-    return;
-  }
-  const cols = [
-    { key: 'symbol', label: '交易对' },
-    { key: 'side', label: '方向' },
-    { key: 'entry_price', label: '入场价' },
-    { key: 'exit_price', label: '出场价' },
-    { key: 'size_usdt', label: '保证金' },
-    { key: 'pnl', label: '盈亏(USD)' },
-    { key: 'pnl_pct', label: '盈亏(%)' },
-    { key: 'close_time', label: '平仓时间' },
-  ];
-
-  let headHtml = '<table class="sim-table"><thead><tr>';
-  cols.forEach(c => {
-    const arrow = tradeSortCol === c.key ? (tradeSortDir > 0 ? '↑' : '↓') : '↕';
-    headHtml += '<th class="sortable' + (tradeSortCol === c.key ? (tradeSortDir > 0 ? ' sort-asc' : ' sort-desc') : '') + '" onclick="sortTradesTable(\'' + c.key + '\')">' + c.label + '<span class="sort-arrow">' + arrow + '</span></th>';
-  });
-  headHtml += '</tr></thead><tbody>';
-
-  let sorted = [...trades];
-  if (tradeSortCol) {
-    sorted.sort((a, b) => {
-      let va = a[tradeSortCol], vb = b[tradeSortCol];
-      if (tradeSortCol === 'side') { va = (va === 'BUY' ? 1 : 0); vb = (vb === 'BUY' ? 1 : 0); }
-      if (va < vb) return -1 * tradeSortDir;
-      if (va > vb) return 1 * tradeSortDir;
-      return 0;
-    });
-  }
-
-  sorted.forEach(t => {
-    const pnlClass = t.pnl >= 0 ? 'pnl-up' : 'pnl-down';
-    const pnlSign = t.pnl >= 0 ? '+' : '';
-    const sideClass = t.side === 'BUY' ? 'side-buy' : 'side-sell';
-    headHtml += '<tr>' +
-      '<td style="color:#e2e8f0">' + t.symbol + '</td>' +
-      '<td class="' + sideClass + '">' + (t.side === 'BUY' ? '多' : '空') + '</td>' +
-      '<td>' + formatPrice(t.entry_price) + '</td>' +
-      '<td>' + formatPrice(t.exit_price) + '</td>' +
-      '<td>$' + (t.size_usdt || 0).toFixed(0) + '</td>' +
-      '<td class="' + pnlClass + '">' + pnlSign + '$' + (t.pnl || 0).toFixed(2) + '</td>' +
-      '<td class="' + pnlClass + '">' + pnlSign + (t.pnl_pct || 0).toFixed(2) + '%</td>' +
-      '<td style="color:#94a3b8;font-size:0.75rem">' + (t.close_time || '') + '</td>' +
-      '</tr>';
-  });
-  headHtml += '</tbody></table>';
-  container.innerHTML = headHtml;
-}
-
-function sortTradesTable(col) {
-  if (tradeSortCol === col) {
-    tradeSortDir *= -1;
-  } else {
-    tradeSortCol = col;
-    tradeSortDir = col === 'pnl' || col === 'pnl_pct' ? -1 : 1; // 默认盈亏降序
-  }
-  renderTradeJournal(simData.closed_trades || []);
-}
-
-// ===== 持仓表 =====
 function renderPositionsTable(positions) {
   const container = document.getElementById('simPositions');
   if (!positions || positions.length === 0) {
@@ -2361,6 +2187,34 @@ function renderPositionsTable(positions) {
       '<td class="' + pnlClass + '">' + pnlSign + '$' + (p.unrealized_pnl || 0).toFixed(2) + '</td>' +
       '<td class="' + pnlClass + '">' + pnlSign + (p.pnl_pct || 0).toFixed(2) + '%</td>' +
       '<td style="color:#94a3b8;font-size:0.75rem">' + (p.open_time || '') + '</td>' +
+      '</tr>';
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function renderTradesTable(trades) {
+  const container = document.getElementById('simTrades');
+  if (!trades || trades.length === 0) {
+    container.innerHTML = '<div class="sim-empty">暂无平仓记录</div>';
+    return;
+  }
+  let html = '<table class="sim-table"><thead><tr>' +
+    '<th>交易对</th><th>方向</th><th>入场价</th><th>出场价</th><th>保证金</th><th>盈亏(USD)</th><th>盈亏(%)</th><th>平仓时间</th>' +
+    '</tr></thead><tbody>';
+  trades.forEach(t => {
+    const pnlClass = t.pnl >= 0 ? 'pnl-up' : 'pnl-down';
+    const pnlSign = t.pnl >= 0 ? '+' : '';
+    const sideClass = t.side === 'BUY' ? 'side-buy' : 'side-sell';
+    html += '<tr>' +
+      '<td style="color:#e2e8f0">' + t.symbol + '</td>' +
+      '<td class="' + sideClass + '">' + (t.side === 'BUY' ? '多' : '空') + '</td>' +
+      '<td>' + formatPrice(t.entry_price) + '</td>' +
+      '<td>' + formatPrice(t.exit_price) + '</td>' +
+      '<td>$' + (t.size_usdt || 0).toFixed(0) + '</td>' +
+      '<td class="' + pnlClass + '">' + pnlSign + '$' + (t.pnl || 0).toFixed(2) + '</td>' +
+      '<td class="' + pnlClass + '">' + pnlSign + (t.pnl_pct || 0).toFixed(2) + '%</td>' +
+      '<td style="color:#94a3b8;font-size:0.75rem">' + (t.close_time || '') + '</td>' +
       '</tr>';
   });
   html += '</tbody></table>';
