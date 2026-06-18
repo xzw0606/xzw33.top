@@ -1,4 +1,38 @@
 const POSTS = [
+  {
+    id: "strategy-update-20260618-v3954",
+    module: "strategy",
+    title: "v3.9.54 网站升级 — 模拟交易日/周/月统计修复 + 平仓汇总",
+    date: "2026-06-18",
+    tags: ["网站", "v3.9", "数据可视化"],
+    summary: "模拟交易面板日/周/月过滤修复：权益曲线按自然日切分、平仓记录新增汇总行（总盈亏/胜率/盈亏比）。修复秒级时间戳与毫秒级比对 bug。",
+    content: '<h2>问题</h2>'+
+      '<p>模拟交易面板的「日/周/月」范围按钮点击无反馈——切换后数据和全部一模一样，完全区分不开。</p>'+
+      '<h2>根因</h2>'+
+      '<p>两个 bug 叠加导致的：</p>'+
+      '<ol>'+
+        '<li><strong>时间戳单位不一致</strong>：<code>simulation.json</code> 中的 <code>h.ts</code> 是秒级时间戳（如 <code>1781739901</code>），但 JS <code>Date.getTime()</code> 返回毫秒级（<code>1781680939000</code>）。直接比较的话秒级值永远小于毫秒级 cutoff——181 个数据点全被过滤，只剩 12 个无 ts 字段的旧数据点。</li>'+
+        '<li><strong>语义偏差</strong>：「日」用的是「最近 24 小时」而非「今天 00:00 至今」。当前所有数据都在 16 小时内（6/17 下午到 6/18 早上），所以即使过滤正常工作，日/周/月的结果也完全相同。</li>'+
+      '</ol>'+
+      '<h2>修复</h2>'+
+      '<table><tr><th>修改</th><th>位置</th><th>说明</th></tr>'+
+        '<tr><td><code>h.ts → h.ts * 1000</code></td><td><code>renderEquityChart()</code></td><td>秒级转毫秒，与 cutoff 对齐</td></tr>'+
+        '<tr><td>自然日切分</td><td><code>renderEquityChart()</code> / <code>renderTradesTable()</code></td><td>「日」=今天 00:00 至今，「周/月」=今天 00:00 往前推</td></tr>'+
+        '<tr><td>新增汇总行</td><td><code>renderTradesTable()</code></td><td>筛选笔数 / 总盈亏 / 胜率 / 盈亏比 / 赢亏笔数</td></tr>'+
+      '</table>'+
+      '<h2>验证结果</h2>'+
+      '<p>修复后日/月/年统计数据区分明显：</p>'+
+      '<table><tr><th></th><th>笔数</th><th>总盈亏</th><th>胜率</th><th>盈亏比</th></tr>'+
+        '<tr><td>全部</td><td>22</td><td>-$109.19</td><td>41%</td><td>0.5</td></tr>'+
+        '<tr><td>日</td><td>11</td><td>-$39.88</td><td>45%</td><td>0.5</td></tr>'+
+      '</table>'+
+      '<h2>附带修复</h2>'+
+      '<ul>'+
+        '<li>浏览器缓存：<code>app.js</code> 添加版本查询字符串 <code>?v=3.9.54</code>，击败 Nginx max-age=3600</li>'+
+        '<li>恢复被错误同步覆盖的 v3.9.52-v3.9.54 全部改动</li>'+
+      '</ul>'+
+      '<blockquote>教训：代码存在 ≠ 功能可用。v3.9.51 宣称有日/周/月切换但从未真正工作——参数名错配 + 时间戳单位错误让过滤完全失效。</blockquote>'
+  },
     {
     id: "strategy-update-20260617-v39",
     module: "strategy",
