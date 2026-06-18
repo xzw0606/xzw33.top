@@ -4,6 +4,8 @@ let currentPostId = null;
 let searchQuery = '';
 let sortMode = 'latest'; // 'latest' | 'oldest'
 let activeTag = null; // 当前选中的标签
+let simRangeDays = 0; // 0=全部, 1/7/30
+let simTradeRange = 0; // 0=全部, 1/7/30 平仓记录筛选
 
 // HTML转义防XSS
 function escapeHtml(str) {
@@ -782,15 +784,46 @@ function renderSimulationDashboard() {
 
 function renderEquityChart(history) {
   const container = document.getElementById('simChartContainer');
-  let canvas = container.querySelector('canvas');
-  if (!canvas) {
-    canvas = document.createElement('canvas');
-    canvas.style.width = '100%';
-    canvas.style.height = '300px';
-    container.appendChild(canvas);
-  }
+  if (!container) return;
 
-  if (!history || history.length < 2) {
+  // 过滤时间范围
+  const now = new Date();
+  let filtered = history;
+  if (simRangeDays > 0) {
+    // 日=今天00:00, 周/月=今天00:00往前推
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const cutoff = simRangeDays === 1 
+      ? todayStart 
+      : todayStart - (simRangeDays - 1) * 86400000;
+    filtered = filtered.filter(h => {
+      const t = (h.ts ? h.ts * 1000 : 0) || (h.t ? new Date(h.t.replace(' ','T')+'+08:00').getTime() : 0);
+      return t >= cutoff;
+    });
+  }
+  if (filtered.length < 2) filtered = history;
+
+  // 重建容器内容
+  container.innerHTML = '';
+  
+  // 标题行 + 范围按钮
+  const header = document.createElement('div');
+  header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;flex-wrap:wrap;gap:0.4rem;';
+  header.innerHTML = 
+    '<span class="chart-title">📈 权益曲线</span>' +
+    '<div class="range-selector">' +
+      '<button class="range-btn'+(simRangeDays===0?' active':'')+'" onclick="setChartRange(0)">全部</button>' +
+      '<button class="range-btn'+(simRangeDays===1?' active':'')+'" onclick="setChartRange(1)">日</button>' +
+      '<button class="range-btn'+(simRangeDays===7?' active':'')+'" onclick="setChartRange(7)">周</button>' +
+      '<button class="range-btn'+(simRangeDays===30?' active':'')+'" onclick="setChartRange(30)">月</button>' +
+    '</div>';
+  container.appendChild(header);
+
+  const canvas = document.createElement('canvas');
+  canvas.style.width = '100%';
+  canvas.style.height = '300px';
+  container.appendChild(canvas);
+
+  if (!filtered || filtered.length < 2) {
     canvas.style.display = 'none';
     container.insertAdjacentHTML('beforeend', '<div class="sim-empty">暂无权益历史数据</div>');
     return;
@@ -814,7 +847,7 @@ function renderEquityChart(history) {
   const ph = H - pad.top - pad.bottom;
 
   // 数据范围
-  const equities = history.map(h => h.equity);
+  const equities = filtered.map(h => h.equity);
   let minVal = Math.min(...equities);
   let maxVal = Math.max(...equities);
   const range = maxVal - minVal || 1;
@@ -834,7 +867,6 @@ function renderEquityChart(history) {
     ctx.moveTo(pad.left, y);
     ctx.lineTo(W - pad.right, y);
     ctx.stroke();
-    // Y标签
     const val = maxVal - (range * 1.2) / gridLines * i;
     ctx.fillStyle = '#64748b';
     ctx.font = '10px monospace';
@@ -866,8 +898,8 @@ function renderEquityChart(history) {
 
   // 绘制区域
   ctx.beginPath();
-  const firstPt = history[0];
-  let x0 = pad.left + ((0) / (history.length - 1)) * pw;
+  const firstPt = filtered[0];
+  let x0 = pad.left + ((0) / (filtered.length - 1)) * pw;
   let y0 = pad.top + ((maxVal - firstPt.equity) / (maxVal - minVal)) * ph;
   ctx.moveTo(x0, pad.top + ph);
   ctx.lineTo(x0, y0);
@@ -878,9 +910,9 @@ function renderEquityChart(history) {
   ctx.shadowColor = 'rgba(0,212,255,0.5)';
   ctx.shadowBlur = 8;
   ctx.beginPath();
-  for (let i = 0; i < history.length; i++) {
-    const x = pad.left + (i / (history.length - 1)) * pw;
-    const y = pad.top + ((maxVal - history[i].equity) / (maxVal - minVal)) * ph;
+  for (let i = 0; i < filtered.length; i++) {
+    const x = pad.left + (i / (filtered.length - 1)) * pw;
+    const y = pad.top + ((maxVal - filtered[i].equity) / (maxVal - minVal)) * ph;
     if (i === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   }
@@ -893,52 +925,49 @@ function renderEquityChart(history) {
   ctx.fillStyle = grad;
   ctx.fill();
 
-  // 再次绘制线条（在填充上方）
+  // 再次绘制线条
   ctx.strokeStyle = '#00d4ff';
   ctx.lineWidth = 1.5;
   ctx.shadowColor = 'rgba(0,212,255,0.3)';
   ctx.shadowBlur = 5;
   ctx.beginPath();
-  for (let i = 0; i < history.length; i++) {
-    const x = pad.left + (i / (history.length - 1)) * pw;
-    const y = pad.top + ((maxVal - history[i].equity) / (maxVal - minVal)) * ph;
+  for (let i = 0; i < filtered.length; i++) {
+    const x = pad.left + (i / (filtered.length - 1)) * pw;
+    const y = pad.top + ((maxVal - filtered[i].equity) / (maxVal - minVal)) * ph;
     if (i === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   }
   ctx.stroke();
   ctx.shadowBlur = 0;
 
-  // 起点和终点标记
-  const lastIdx = history.length - 1;
+  // 终点标记
+  const lastIdx = filtered.length - 1;
   const lx = pad.left + (lastIdx / lastIdx) * pw;
-  const ly = pad.top + ((maxVal - history[lastIdx].equity) / (maxVal - minVal)) * ph;
-  // 终点
+  const ly = pad.top + ((maxVal - filtered[lastIdx].equity) / (maxVal - minVal)) * ph;
   ctx.fillStyle = '#00d4ff';
   ctx.shadowColor = 'rgba(0,212,255,0.8)';
   ctx.shadowBlur = 12;
   ctx.beginPath();
   ctx.arc(lx, ly, 4, 0, Math.PI * 2);
   ctx.fill();
-  // 终点标注
   ctx.shadowBlur = 0;
   ctx.fillStyle = '#00d4ff';
   ctx.font = 'bold 11px monospace';
   ctx.textAlign = 'left';
-  ctx.fillText('$' + history[lastIdx].equity.toFixed(2), lx + 8, ly + 4);
+  ctx.fillText('$' + filtered[lastIdx].equity.toFixed(2), lx + 8, ly + 4);
 
-  // X轴标签（简化）
+  // X轴标签
   ctx.fillStyle = '#64748b';
   ctx.font = '10px monospace';
   ctx.textAlign = 'center';
-  const xStep = Math.max(1, Math.floor(history.length / 5));
-  for (let i = 0; i < history.length; i += xStep) {
-    const x = pad.left + (i / (history.length - 1)) * pw;
-    const label = history[i].t || '';
+  const xStep = Math.max(1, Math.floor(filtered.length / 5));
+  for (let i = 0; i < filtered.length; i += xStep) {
+    const x = pad.left + (i / (filtered.length - 1)) * pw;
+    const label = filtered[i].t || '';
     const short = label.length > 16 ? label.slice(-8) : label.slice(11, 16);
     ctx.fillText(short, x, H - pad.bottom + 16);
   }
 }
-
 function renderPositionsTable(positions) {
   const container = document.getElementById('simPositions');
   if (!positions || positions.length === 0) {
@@ -1049,10 +1078,61 @@ function renderTradesTable(trades) {
     container.innerHTML = '<div class="sim-empty">暂无平仓记录</div>';
     return;
   }
-  let html = '<table class="sim-table"><thead><tr>' +
+
+  // 时间范围过滤
+  const now = new Date();
+  let filtered = trades;
+  if (simTradeRange > 0) {
+    // 日=今天00:00, 周/月=今天00:00往前推
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const cutoff = simTradeRange === 1 
+      ? todayStart 
+      : todayStart - (simTradeRange - 1) * 86400000;
+    filtered = trades.filter(t => {
+      const ct = t.close_time;
+      if (!ct) return false;
+      const parsed = new Date(ct.replace(' ','T') + '+08:00');
+      return parsed.getTime() >= cutoff;
+    });
+  }
+  if (filtered.length === 0) filtered = trades;
+
+  // 计算汇总
+  const totalPnL = filtered.reduce((s, t) => s + (t.pnl || 0), 0);
+  const wins = filtered.filter(t => (t.pnl || 0) > 0);
+  const losses = filtered.filter(t => (t.pnl || 0) <= 0);
+  const winRate = filtered.length > 0 ? ((wins.length / filtered.length) * 100).toFixed(0) : 0;
+  const totalWin = wins.reduce((s, t) => s + (t.pnl || 0), 0);
+  const totalLoss = Math.abs(losses.reduce((s, t) => s + (t.pnl || 0), 0));
+  const pf = totalLoss > 0 ? (totalWin / totalLoss) : (totalWin > 0 ? 99 : 0);
+
+  // 范围选择按钮
+  let html = '<div class="trade-range-bar">' +
+    '<span class="trade-range-label">📋 已平仓记录</span>' +
+    '<div class="range-selector">' +
+      '<button class="range-btn' + (simTradeRange === 0 ? ' active' : '') + '" onclick="setTradeRange(0)">全部</button>' +
+      '<button class="range-btn' + (simTradeRange === 1 ? ' active' : '') + '" onclick="setTradeRange(1)">日</button>' +
+      '<button class="range-btn' + (simTradeRange === 7 ? ' active' : '') + '" onclick="setTradeRange(7)">周</button>' +
+      '<button class="range-btn' + (simTradeRange === 30 ? ' active' : '') + '" onclick="setTradeRange(30)">月</button>' +
+    '</div>' +
+    '</div>';
+
+  // 汇总行
+  const sumPnLClass = totalPnL >= 0 ? 'pnl-up' : 'pnl-down';
+  const sumPnLSign = totalPnL >= 0 ? '+' : '';
+  html += '<div class="trade-summary">' +
+    '<div class="ts-item"><span class="ts-label">筛选笔数</span><span class="ts-value" style="color:#00d4ff">' + filtered.length + '</span></div>' +
+    '<div class="ts-item"><span class="ts-label">总盈亏</span><span class="ts-value ' + sumPnLClass + '">' + sumPnLSign + '$' + totalPnL.toFixed(2) + '</span></div>' +
+    '<div class="ts-item"><span class="ts-label">胜率</span><span class="ts-value" style="color:' + (parseInt(winRate) >= 50 ? '#39ff14' : '#ff4466') + '">' + winRate + '%</span></div>' +
+    '<div class="ts-item"><span class="ts-label">盈亏比</span><span class="ts-value" style="color:' + (pf >= 1 ? '#39ff14' : '#ff4466') + '">' + pf.toFixed(1) + '</span></div>' +
+    '<div class="ts-item"><span class="ts-label">赢/亏</span><span class="ts-value" style="color:#94a3b8">' + wins.length + '赢 / ' + losses.length + '亏</span></div>' +
+    '</div>';
+
+  // 表格
+  html += '<table class="sim-table"><thead><tr>' +
     '<th>交易对</th><th>方向</th><th>入场价</th><th>出场价</th><th>保证金</th><th>盈亏(USD)</th><th>盈亏(%)</th><th>平仓时间</th>' +
     '</tr></thead><tbody>';
-  trades.forEach(t => {
+  filtered.forEach(t => {
     const pnlClass = t.pnl >= 0 ? 'pnl-up' : 'pnl-down';
     const pnlSign = t.pnl >= 0 ? '+' : '';
     const sideClass = t.side === 'BUY' ? 'side-buy' : 'side-sell';
@@ -1069,6 +1149,10 @@ function renderTradesTable(trades) {
   });
   html += '</tbody></table>';
   container.innerHTML = html;
+}
+function setTradeRange(days) {
+  simTradeRange = days;
+  renderTradesTable(simData.closed_trades || []);
 }
 
 // ===== v3.9.51 手动刷新模拟数据 =====
@@ -1109,6 +1193,11 @@ function hotTagClick(tag) {
 }
 
 // ===== 滚动事件监听 =====
+function setChartRange(days) {
+  simRangeDays = days;
+  renderEquityChart(simData.equity_history || []);
+}
+
 window.addEventListener('scroll', function() {
   handleReadingProgress();
   // 高亮当前TOC项

@@ -5,13 +5,13 @@
   <link>https://xzw33.top</link>
   <description>量化交易实盘记录、策略迭代和技术笔记</description>
   <language>zh-CN</language>
-  <lastBuildDate>Wed, 17 Jun 2026 14:25:41 GMT</lastBuildDate>
+  <lastBuildDate>Wed, 17 Jun 2026 20:05:01 GMT</lastBuildDate>
   <atom:link href="https://xzw33.top/rss.xml" rel="self" type="application/rss+xml"/>
   <item>
-    <title>策略更新 v3.9 — VERSION: 2026-06-17 v3.9.50 — 方案C: ATR追踪止损 + EMA</title>
+    <title>策略更新 v3.9.50 — 方案C: ATR追踪止损 + EMA死叉止盈</title>
     <link>https://xzw33.top/#/post/strategy-update-20260617-v39</link>
     <guid isPermaLink="false">strategy-update-20260617-v39</guid>
-    <description>VERSION: 2026-06-17 v3.9.50 — 方案C: ATR追踪止损 + EMA死叉止盈</description>
+    <description>v3.9.50 重构出场逻辑：用极简的 TP1/SL1（±1%）替代 ATR 追踪止盈体系，降低频繁止损导致的净值磨损。</description>
     <pubDate>2026-06-17T00:00:00+08:00</pubDate>
     <category>strategy</category>
   </item>
@@ -64,10 +64,10 @@
     <category>quant</category>
   </item>
   <item>
-    <title>策略更新 v3.9 — VERSION: 2026-06-05 v3.9.48 — 手动仓位不接管止损 — EMA缓冲0</title>
+    <title>策略更新 v3.9.48 — 手动仓位隔离 + 开仓即追踪 + 保本缓冲</title>
     <link>https://xzw33.top/#/post/strategy-update-20260605-v39</link>
     <guid isPermaLink="false">strategy-update-20260605-v39</guid>
-    <description>VERSION: 2026-06-05 v3.9.48 — 手动仓位不接管止损 — EMA缓冲0.2%+冷却30min — TP1/SL1出场</description>
+    <description>v3.9.48 三个关键修复：手动仓位不再被引擎接管止损、ATR 追踪止损开仓即启用、保本触发加 0.2% 缓冲。</description>
     <pubDate>2026-06-05T00:00:00+08:00</pubDate>
     <category>strategy</category>
   </item>
@@ -104,10 +104,10 @@
     <category>quant</category>
   </item>
   <item>
-    <title>策略更新 v3.9 — 持仓管理模块 - 单仓版本 VERSION: 2026-05-31 v3.9.31</title>
+    <title>策略更新 v3.9.31 — 持仓管理模块独立化</title>
     <link>https://xzw33.top/#/post/strategy-update-20260531-v39</link>
     <guid isPermaLink="false">strategy-update-20260531-v39</guid>
-    <description>持仓管理模块 - 单仓版本 VERSION: 2026-05-31 v3.9.31</description>
+    <description>v3.9.31 将持仓管理从 engine.py 中拆出为独立的 position/manager.py 模块，支持多仓并行管理、单仓独立止损、动态杠杆分档。</description>
     <pubDate>2026-05-31T00:00:00+08:00</pubDate>
     <category>strategy</category>
   </item>

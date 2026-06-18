@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- xzw33.top | blog.html | Version: v3.9.51 | Build: 2026-06-17 -->
+<!-- xzw33.top | blog.html | Version: v3.9.54 | Build: 2026-06-17 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -733,6 +733,36 @@ body::after {
   .sim-analytics-cards { grid-template-columns: 1fr 1fr; }
   .sim-analytics-card .sac-value { font-size: 1.1rem; }
 }
+
+/* ===== v3.9.52 权益曲线范围按钮 ===== */
+.range-selector { display:flex; gap:0.3rem; }
+.range-btn {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+  color: var(--text-secondary); font-size:0.72rem; padding:0.15rem 0.55rem;
+  border-radius:5px; cursor:pointer; transition: all 0.2s; font-family:inherit;
+}
+.range-btn:hover { background: rgba(0,212,255,0.12); border-color: rgba(0,212,255,0.3); color:#fff; }
+.range-btn.active { background: rgba(0,212,255,0.18); border-color: rgba(0,212,255,0.4); color:#00d4ff; font-weight:600; }
+/* ===== v3.9.52 平仓记录筛选汇总 ===== */
+.trade-range-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; flex-wrap:wrap; gap:0.4rem; }
+.trade-range-label { color:var(--neon-blue); font-size:0.95rem; font-weight:600; letter-spacing:0.03em; }
+.trade-summary {
+  display:flex; gap:0.6rem; flex-wrap:wrap; margin-bottom:0.6rem;
+  background: linear-gradient(145deg, rgba(26,34,54,0.5), rgba(17,24,39,0.5));
+  border:1px solid var(--border-color); border-radius:8px; padding:0.5rem 0.8rem;
+}
+.ts-item { display:flex; flex-direction:column; align-items:center; gap:0.1rem; min-width:50px; }
+.ts-label { font-size:0.65rem; color:var(--text-secondary); }
+.ts-value { font-size:0.85rem; font-weight:700; }
+@media(max-width:768px) {
+  .trade-summary { gap:0.4rem; padding:0.4rem 0.5rem; }
+  .ts-value { font-size:0.75rem; }
+  .ts-item { min-width:42px; }
+}
+@media(max-width:480px) {
+  .trade-summary { justify-content:center; }
+  .ts-value { font-size:0.7rem; }
+}
 </style>
 <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js" defer></script>
@@ -758,7 +788,7 @@ body::after {
     </div>
     <div class="hero-stats" id="heroStats">
       <div class="hero-stat"><span class="hs-val">13</span><span class="hs-label">篇文章</span></div>
-      <div class="hero-stat"><span class="hs-val">v3.9.51</span><span class="hs-label">策略版本</span></div>
+      <div class="hero-stat"><span class="hs-val">v3.9.54</span><span class="hs-label">策略版本</span></div>
     </div>
   </div>
 </div>
@@ -811,18 +841,17 @@ body::after {
         <div class="sim-table-wrap" id="simPositions"></div>
       </div>
       <div class="sim-section">
-        <h3 class="sim-section-title">📋 已平仓记录</h3>
         <div class="sim-table-wrap" id="simTrades"></div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="footer">© 2026 Xzw · xzw33.top · v3.9.51 · <a href="https://github.com/xzw0606/xzw33.top" target="_blank" rel="noopener">GitHub</a> · <a href="/rss.xml">RSS</a></div>
+<div class="footer">© 2026 Xzw · xzw33.top · v3.9.54 · <a href="https://github.com/xzw0606/xzw33.top" target="_blank" rel="noopener">GitHub</a> · <a href="/rss.xml">RSS</a></div>
 
 <button class="back-to-top" id="backToTop" onclick="scrollToTop()" title="回到顶部">⬆</button>
 
-<script src="posts.js" defer></script>
-<script src="app.js" defer></script>
+<script src="posts.js?v=3.9.54" defer></script>
+<script src="app.js?v=3.9.54" defer></script>
 </body>
 </html>
