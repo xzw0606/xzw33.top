@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- xzw33.top | blog.html | Version: v3.9.54 | Build: 2026-06-17 -->
+<!-- xzw33.top | blog.html | Version: v3.9.94 | Build: 2026-06-18 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -418,25 +418,6 @@ body::after {
   .post-detail-header h2 { font-size:1.4rem; }
   .tag-cloud { justify-content:center; }
 }
-/* ===== v3.9.51 TOC右侧固定（桌面端） ===== */
-@media(min-width:769px) {
-  .toc-panel {
-    position:fixed;
-    right:max(0.8rem, calc((100vw - 1150px) / 2));
-    top:90px;
-    width:200px;
-    max-height:calc(100vh - 130px);
-    overflow-y:auto;
-    margin:0;
-    z-index:10;
-  }
-  .toc-panel.collapsed {
-    width:auto;
-    min-width:40px;
-    max-height:none;
-    overflow-y:visible;
-  }
-  .toc-panel.toc-empty { width:200px; }
 }
 /* ===== 阅读进度条 ===== */
 .reading-progress {
@@ -444,6 +425,29 @@ body::after {
   background:linear-gradient(90deg, var(--neon-blue), var(--neon-pink));
   z-index:1000; transition:width 0.1s linear;
   box-shadow:0 0 8px rgba(0,212,255,0.5);
+}
+/* ===== 右侧滚动进度条（桌面端） ===== */
+.progress-bar-vertical {
+  position:fixed;
+  right:0;
+  top:0;
+  width:3px;
+  height:100vh;
+  z-index:1001;
+  pointer-events:none;
+}
+.progress-bar-vertical::after {
+  content:'';
+  position:absolute;
+  top:0; right:0;
+  width:100%;
+  height:var(--scroll-pct, 0%);
+  background:linear-gradient(180deg, var(--neon-blue), var(--neon-pink));
+  border-radius:0 0 3px 3px;
+  transition:height 0.1s linear;
+}
+@media(max-width:768px) {
+  .progress-bar-vertical { display:none; }
 }
 /* ===== 回到顶部按钮 ===== */
 .back-to-top {
@@ -457,26 +461,7 @@ body::after {
 }
 .back-to-top.visible { opacity:1; transform:translateY(0); pointer-events:auto; }
 .back-to-top:hover { border-color:var(--neon-blue); box-shadow:var(--glow-blue); }
-/* ===== 文章目录(TOC) ===== */
-.toc-panel {
-  background:rgba(26,34,54,0.6); border:1px solid var(--border-color);
-  border-radius:8px; padding:1rem 1.2rem; margin-bottom:1.5rem;
-  width:100%;
-}
-.toc-title { font-size:0.85rem; color:var(--neon-blue); margin-bottom:0.7rem; font-weight:600; display:flex; align-items:center; gap:0.4rem; cursor:pointer; user-select:none; }
-.toc-title::after { content:'▼'; font-size:0.65rem; margin-left:auto; transition:transform 0.2s; }
-.toc-panel.collapsed .toc-title::after { transform:rotate(-90deg); }
-.toc-panel.collapsed .toc-list { display:none; }
-.toc-list { list-style:none; padding:0; margin:0; }
-.toc-list li { margin:0.25rem 0; }
-.toc-list a {
-  color:var(--text-secondary); font-size:0.8rem; text-decoration:none;
-  transition:color 0.2s; display:block; padding:0.15rem 0;
-  border-left:2px solid transparent; padding-left:0.6rem;
-}
-.toc-list a:hover, .toc-list a.active { color:var(--neon-blue); border-left-color:var(--neon-blue); }
-.toc-list a.toc-h3 { padding-left:1.4rem; font-size:0.75rem; }
-.toc-empty-hint { font-size:0.72rem; color:var(--text-secondary); opacity:0.5; padding:0.5rem 0.6rem; }
+/* ===== 内容区域 ===== */
 /* ===== 标签云 ===== */
 .tag-cloud { display:flex; flex-wrap:wrap; gap:0.5rem; margin:1.5rem 0 0.5rem; justify-content:center; }
 .tag-cloud .tag { cursor:pointer; transition:all 0.3s; white-space:nowrap; user-select:none; }
@@ -656,6 +641,8 @@ body::after {
 .sim-card.card-pnl::before { background:linear-gradient(90deg,var(--neon-pink),var(--neon-blue)); }
 .sim-card.card-win::before { background:linear-gradient(90deg,var(--neon-green),#00d4ff); }
 .sim-card.card-pos::before { background:linear-gradient(90deg,#f59e0b,var(--neon-pink)); }
+.sim-card.card-balance::before { background:linear-gradient(90deg,#a78bfa,#818cf8); }
+.sim-card.card-fee::before { background:linear-gradient(90deg,#f87171,#fbbf24); }
 .sim-card:hover { border-color:rgba(0,212,255,0.3); box-shadow:0 4px 24px rgba(0,212,255,0.08); transform:translateY(-2px); }
 .sim-card .sc-label { font-size:0.78rem; color:var(--text-secondary); margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.05em; }
 .sim-card .sc-value { font-size:1.6rem; font-weight:700; font-family:monospace; }
@@ -664,7 +651,7 @@ body::after {
 .sim-card .sc-value.down { color:var(--neon-pink); }
 /* 图表容器 */
 .sim-chart-container { background:var(--bg-card); border:1px solid var(--border-color); border-radius:12px; padding:1.5rem 1rem 0.8rem; margin-bottom:1.5rem; position:relative; }
-.sim-chart-container::before { content:'📈 权益曲线'; display:block; font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.8rem; letter-spacing:0.04em; }
+.sim-chart-container::before { display:none; }
 .sim-chart-container canvas { width:100%; height:300px; display:block; }
 @media(max-width:768px) { .sim-chart-container canvas { height:240px; } .sim-dashboard-cards { grid-template-columns:repeat(2,1fr); } }
 /* 表格 */
@@ -680,7 +667,127 @@ body::after {
 .sim-table .side-buy { color:var(--neon-green); font-weight:600; }
 .sim-table .side-sell { color:var(--neon-pink); font-weight:600; }
 .sim-updated { text-align:right; font-size:0.7rem; color:var(--text-secondary); margin-top:0.8rem; opacity:0.7; }
+/* 权益曲线 tooltip */
+.equity-tooltip {
+  position: absolute; pointer-events: none; opacity: 0; z-index: 10;
+  background: rgba(10,18,32,0.95); border: 1px solid rgba(0,212,255,0.4);
+  border-radius: 6px; padding: 0.4rem 0.7rem; font-size: 0.75rem;
+  color: #e0e0e0; white-space: nowrap; transition: opacity 0.15s;
+  box-shadow: 0 0 12px rgba(0,212,255,0.15); font-family: monospace;
+}
+.equity-tooltip.show { opacity: 1; }
+.sim-table-wrap .sim-table { font-size: 0.76rem; }
+.sim-table-wrap .sim-table td { padding: 0.35rem 0.6rem; }
+.sim-table-wrap .sim-table th { padding: 0.4rem 0.6rem; font-size: 0.7rem; }
+/* 分页导航 */
+.page-nav { display:flex; align-items:center; justify-content:center; gap:0.4rem; margin-top:0.8rem; padding:0.5rem 0; }
+.page-btn { 
+  min-width:2rem; height:1.8rem; padding:0 0.5rem; 
+  border:1px solid rgba(255,255,255,0.1); border-radius:6px; 
+  background:rgba(255,255,255,0.03); color:var(--text-secondary); 
+  cursor:pointer; font-size:0.8rem; font-family:monospace;
+  transition:all 0.15s;
+}
+.page-btn:hover { background:rgba(0,212,255,0.12); border-color:var(--neon-blue); color:#e0e0e0; }
+.page-btn.active { background:var(--neon-blue); color:#0a0e17; border-color:var(--neon-blue); font-weight:700; }
+.page-btn[disabled] { opacity:0.25; cursor:default; pointer-events:none; }
+.page-info { font-size:0.7rem; color:var(--text-secondary); margin-left:0.5rem; }
 .sim-empty { text-align:center; padding:2rem; color:var(--text-secondary); font-size:0.9rem; }
+
+/* ===== 日报日历 ===== */
+.sim-calendar {
+  background: var(--bg-card); border: 1px solid var(--border-color);
+  border-radius: 12px; padding: 1.2rem; margin-bottom: 1.5rem;
+}
+.cal-header {
+  display: flex; align-items: center; justify-content: center;
+  gap: 1rem; margin-bottom: 1rem;
+}
+.cal-nav {
+  background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.2);
+  color: var(--neon-blue); cursor: pointer; font-size: 0.85rem;
+  width: 2rem; height: 2rem; border-radius: 6px; display: flex;
+  align-items: center; justify-content: center; transition: all 0.2s;
+}
+.cal-nav:hover { background: rgba(0,212,255,0.18); box-shadow: 0 0 8px rgba(0,212,255,0.2); }
+.cal-title { font-size: 0.95rem; color: #e0e0e0; font-weight: 600; letter-spacing: 0.03em; min-width: 100px; text-align: center; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.cal-day-name {
+  text-align: center; font-size: 0.7rem; color: var(--text-secondary);
+  padding: 0.3rem 0; font-weight: 500;
+}
+.cal-cell {
+  aspect-ratio: 1; border-radius: 6px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; font-family: monospace;
+  transition: all 0.15s; position: relative; min-height: 48px;
+}
+.cal-cell.cal-empty { background: transparent; }
+.cal-cell.cal-future { background: rgba(255,255,255,0.02); }
+.cal-cell.cal-no-data { background: rgba(255,255,255,0.03); }
+.cal-cell.cal-today { box-shadow: inset 0 0 0 2px var(--neon-blue); }
+
+/* 盈利梯度 */
+.cal-cell.cal-profit-high { background: rgba(57,255,20,0.22); }
+.cal-cell.cal-profit-mid { background: rgba(57,255,20,0.12); }
+.cal-cell.cal-profit-low { background: rgba(57,255,20,0.06); }
+/* 亏损梯度 */
+.cal-cell.cal-loss-high { background: rgba(248,113,113,0.22); }
+.cal-cell.cal-loss-mid { background: rgba(248,113,113,0.12); }
+.cal-cell.cal-loss-low { background: rgba(248,113,113,0.06); }
+
+.cal-cell.cal-has-data { cursor: pointer; }
+.cal-cell.cal-has-data:hover { transform: scale(1.08); z-index: 2; box-shadow: 0 0 12px rgba(0,212,255,0.15); }
+
+.cal-day-num { font-size: 0.75rem; color: var(--text-secondary); line-height: 1; }
+.cal-day-pnl { font-size: 0.6rem; line-height: 1; margin-top: 1px; font-weight: 600; }
+.cal-profit-high .cal-day-pnl { color: #39ff14; }
+.cal-profit-mid .cal-day-pnl { color: #66ff66; }
+.cal-profit-low .cal-day-pnl { color: #99ff99; }
+.cal-loss-high .cal-day-pnl { color: #f87171; }
+.cal-loss-mid .cal-day-pnl { color: #f99; }
+.cal-loss-low .cal-day-pnl { color: #fcc; }
+
+.cal-summary {
+  display: flex; justify-content: center; gap: 1.5rem; margin-top: 0.8rem;
+  padding-top: 0.6rem; border-top: 1px solid rgba(255,255,255,0.06);
+  font-size: 0.78rem; color: var(--text-secondary); flex-wrap: wrap;
+}
+.cal-summary-up { color: var(--neon-green); }
+.cal-summary-down { color: var(--neon-pink); }
+
+.cal-detail {
+  margin-top: 0.8rem; padding: 0.8rem;
+  background: rgba(0,0,0,0.2); border-radius: 8px;
+  border: 1px solid rgba(0,212,255,0.1);
+}
+.cal-detail-header {
+  font-size: 0.85rem; color: var(--neon-blue); margin-bottom: 0.5rem;
+  font-weight: 600; cursor: pointer;
+}
+.cal-detail-total {
+  text-align: right; font-size: 0.85rem; color: var(--text-secondary);
+  margin-top: 0.5rem; padding-top: 0.4rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.cal-detail .sim-table-wrap { overflow-x: auto; border-radius: 8px; }
+.cal-detail .sim-table { font-size: 0.72rem; width: 100%; }
+.cal-detail .sim-table td { padding: 0.3rem 0.45rem; white-space: nowrap; }
+.cal-detail .sim-table th { padding: 0.35rem 0.45rem; font-size: 0.68rem; }
+
+@media(max-width:768px) {
+  .sim-calendar { padding: 0.8rem; }
+  .cal-cell { min-height: 36px; }
+  .cal-day-num { font-size: 0.65rem; }
+  .cal-day-pnl { font-size: 0.55rem; }
+  .cal-summary { gap: 0.6rem; font-size: 0.7rem; }
+}
+@media(max-width:480px) {
+  .cal-cell { min-height: 30px; }
+  .cal-day-num { font-size: 0.6rem; }
+  .cal-day-pnl { font-size: 0.5rem; }
+  .cal-title { font-size: 0.8rem; }
+}
+
 
 /* ===== v3.9.51 热门标签 ===== */
 .hot-tags {
@@ -746,30 +853,34 @@ body::after {
 /* ===== v3.9.52 平仓记录筛选汇总 ===== */
 .trade-range-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; flex-wrap:wrap; gap:0.4rem; }
 .trade-range-label { color:var(--neon-blue); font-size:0.95rem; font-weight:600; letter-spacing:0.03em; }
-.trade-summary {
-  display:flex; gap:0.6rem; flex-wrap:wrap; margin-bottom:0.6rem;
-  background: linear-gradient(145deg, rgba(26,34,54,0.5), rgba(17,24,39,0.5));
-  border:1px solid var(--border-color); border-radius:8px; padding:0.5rem 0.8rem;
-}
-.ts-item { display:flex; flex-direction:column; align-items:center; gap:0.1rem; min-width:50px; }
-.ts-label { font-size:0.65rem; color:var(--text-secondary); }
-.ts-value { font-size:0.85rem; font-weight:700; }
-@media(max-width:768px) {
-  .trade-summary { gap:0.4rem; padding:0.4rem 0.5rem; }
-  .ts-value { font-size:0.75rem; }
-  .ts-item { min-width:42px; }
-}
-@media(max-width:480px) {
-  .trade-summary { justify-content:center; }
-  .ts-value { font-size:0.7rem; }
-}
+
 </style>
 <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js" defer></script>
 </head>
 <body>
+<script>
+// 必须紧贴 <body> — 此时 document.body 已可用
+(function(){
+  if (location.hash === '#/simulation') {
+    history.scrollRestoration = 'manual';
+    // 🔑 关闭 smooth — scroll-behavior:smooth 会让 scrollTo 变成动画，被浏览器 scroll restoration 中断！
+    document.documentElement.style.scrollBehavior = 'auto';
+    window.scrollTo({top: 0, behavior: 'instant'});
+    // 隐藏博客元素
+    var style = document.createElement('style');
+    style.id = 'pre-sim-hide';
+    style.textContent = '#heroBanner,.search-container,#hotTags,#posts-list,#post-detail,#sortToggle,#tagCloud,.reading-progress,.progress-bar-vertical,#about-page,#heroStats{display:none!important}';
+    document.head.appendChild(style);
+    // bfcache 恢复时也滚顶
+    window.addEventListener('pageshow', function(e){ if(e.persisted) window.scrollTo({top:0,behavior:'instant'}); }, {once:true});
+  }
+})();
+</script>
+
 
 <div class="reading-progress" id="readingProgress" style="width:0%"></div>
+<div class="progress-bar-vertical" id="verticalProgress"></div>
 
 <header class="header">
   <div class="header-inner">
@@ -787,8 +898,8 @@ body::after {
       <p class="hero-bio">重庆 · 币安合约 · HK服务器 24h</p>
     </div>
     <div class="hero-stats" id="heroStats">
-      <div class="hero-stat"><span class="hs-val">13</span><span class="hs-label">篇文章</span></div>
-      <div class="hero-stat"><span class="hs-val">v3.9.54</span><span class="hs-label">策略版本</span></div>
+      <div class="hero-stat"><span class="hs-val"198</span><span class="hs-label">篇文章</span></div>
+      <div class="hero-stat"><span class="hs-val">v3.9.65</span><span class="hs-label">策略版本</span></div>
     </div>
   </div>
 </div>
@@ -825,7 +936,14 @@ body::after {
   <div id="post-detail" class="post-detail"></div>
   <div id="about-page" class="about-section" style="display:none;"></div>
   <div id="simulation-page" class="simulation-section" style="display:none;">
-    <div class="sim-loading" id="simLoading">⏳ 加载模拟交易数据...</div>
+    <div class="sim-loading" id="simLoading">
+      <div class="skel-grid">
+        <div class="skel-card"><div class="skel-line w60"></div><div class="skel-line w80 skel-big"></div><div class="skel-line w40"></div></div>
+        <div class="skel-card"><div class="skel-line w60"></div><div class="skel-line w80 skel-big"></div><div class="skel-line w40"></div></div>
+        <div class="skel-card"><div class="skel-line w60"></div><div class="skel-line w80 skel-big"></div><div class="skel-line w40"></div></div>
+      </div>
+      <p style="color:var(--text-secondary);margin-top:1rem;font-size:0.85rem;">⏳ 加载模拟数据...</p>
+    </div>
     <div class="sim-error" id="simError" style="display:none;">⚠️ 无法加载模拟数据，请稍后重试</div>
     <div class="sim-dashboard" id="simDashboard" style="display:none;">
       <div class="sim-strategy-status" id="simStrategyStatus"></div>
@@ -836,6 +954,9 @@ body::after {
       <div class="sim-dashboard-cards" id="simCards"></div>
       <div class="sim-analytics-cards" id="simAnalyticsCards"></div>
       <div class="sim-chart-container" id="simChartContainer"></div>
+
+      <div class="sim-calendar" id="simCalendar"></div>
+
       <div class="sim-section">
         <h3 class="sim-section-title">📊 当前持仓</h3>
         <div class="sim-table-wrap" id="simPositions"></div>
@@ -847,11 +968,12 @@ body::after {
   </div>
 </div>
 
-<div class="footer">© 2026 Xzw · xzw33.top · v3.9.54 · <a href="https://github.com/xzw0606/xzw33.top" target="_blank" rel="noopener">GitHub</a> · <a href="/rss.xml">RSS</a></div>
+<div class="footer">© 2026 Xzw · xzw33.top · v3.9.94 · <a href="https://github.com/xzw0606/xzw33.top" target="_blank" rel="noopener">GitHub</a> · <a href="/rss.xml">RSS</a></div>
 
 <button class="back-to-top" id="backToTop" onclick="scrollToTop()" title="回到顶部">⬆</button>
 
-<script src="posts.js?v=3.9.54" defer></script>
-<script src="app.js?v=3.9.54" defer></script>
+<script src="posts.js?v=3.9.94" defer></script>
+<script src="https://unpkg.com/lightweight-charts@4.2.1/dist/lightweight-charts.standalone.production.js" defer></script>
+<script src="app.js?v=3.9.93" defer></script>
 </body>
 </html>

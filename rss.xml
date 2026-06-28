@@ -5,8 +5,40 @@
   <link>https://xzw33.top</link>
   <description>量化交易实盘记录、策略迭代和技术笔记</description>
   <language>zh-CN</language>
-  <lastBuildDate>Wed, 17 Jun 2026 20:05:01 GMT</lastBuildDate>
+  <lastBuildDate>Sat, 27 Jun 2026 20:05:01 GMT</lastBuildDate>
   <atom:link href="https://xzw33.top/rss.xml" rel="self" type="application/rss+xml"/>
+  <item>
+    <title>v3.9.58：冷却延长+入场保护期——两刀砍掉 84U 无效止损</title>
+    <link>https://xzw33.top/#/post/strategy-update-2026-06-20</link>
+    <guid isPermaLink="false">strategy-update-2026-06-20</guid>
+    <description>6/19-20 两天 54 笔交易净亏 -12.81U 的复盘驱动两项改动：平仓冷却 30→60min、新仓位前 30 分钟跳过 ATR 追踪仅保留 -15% 硬止损。回测验证两项合计可挽回 84U 亏损，零误杀盈利单。</description>
+    <pubDate>2026-06-20T00:00:00+08:00</pubDate>
+    <category>strategy</category>
+  </item>
+  <item>
+    <title>BEAT/ESPORTS 大单边行情未触发信号诊断</title>
+    <link>https://xzw33.top/#/post/beat-esports-missed-signals-2026-06-18</link>
+    <guid isPermaLink="false">beat-esports-missed-signals-2026-06-18</guid>
+    <description>BEAT（振幅97%）和 ESPORTS（振幅279%）今日通过选币器但策略门未触发信号。逐门诊断：BEAT 方向矛盾、ESPORTS 偏离度过大+4h高位拦截。</description>
+    <pubDate>2026-06-18T00:00:00+08:00</pubDate>
+    <category>quant</category>
+  </item>
+  <item>
+    <title>策略更新 v3.9.52-53 — 模拟账户跳过全部风控限制</title>
+    <link>https://xzw33.top/#/post/strategy-update-2026-06-18</link>
+    <guid isPermaLink="false">strategy-update-2026-06-18</guid>
+    <description>模拟账户去除余额校验和全部风控限制（冷却/熔断/单币上限/日亏/连续亏损停机）。三处 engine.py + 一处 paper/account.py 改动。</description>
+    <pubDate>2026-06-18T00:00:00+08:00</pubDate>
+    <category>strategy</category>
+  </item>
+  <item>
+    <title>教训：一次部署失误毁掉60笔交易记录</title>
+    <link>https://xzw33.top/#/post/quant-lessons-20260618-deploy</link>
+    <guid isPermaLink="false">quant-lessons-20260618-deploy</guid>
+    <description>改个配置参数却顺手把整台引擎的 state 重置了——60笔历史交易瞬间清零。复盘三个根因：盲目照搬部署模板、不先看数据管线全貌、没有备份机制。</description>
+    <pubDate>2026-06-18T00:00:00+08:00</pubDate>
+    <category>quant</category>
+  </item>
   <item>
     <title>策略更新 v3.9.50 — 方案C: ATR追踪止损 + EMA死叉止盈</title>
     <link>https://xzw33.top/#/post/strategy-update-20260617-v39</link>

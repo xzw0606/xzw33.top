@@ -1,11 +1,16 @@
 
+if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
 let currentModule = 'quant';
 let currentPostId = null;
 let searchQuery = '';
 let sortMode = 'latest'; // 'latest' | 'oldest'
 let activeTag = null; // 当前选中的标签
-let simRangeDays = 0; // 0=全部, 1/7/30
-let simTradeRange = 0; // 0=全部, 1/7/30 平仓记录筛选
+let simRangeDays = 1; // 0=全部, 1=日(默认), 7/30
+let simTradeRange = 1; // 0=全部, 1=今日, 7/30天
+let simTradePage = 0;  // 平仓记录分页
+let simPosPage = 0;    // 持仓分页
+let calendarYear = new Date().getFullYear();
+let calendarMonth = new Date().getMonth(); // 0-indexed
 
 // HTML转义防XSS
 function escapeHtml(str) {
@@ -15,12 +20,21 @@ function escapeHtml(str) {
 }
 
 function showHome() {
+  _cleanupSimHide();
+  document.querySelectorAll('.module-tab').forEach(tab => { tab.className = 'module-tab'; });
   document.getElementById('posts-list').style.display = 'block';
   document.getElementById('post-detail').classList.remove('active');
   document.getElementById('about-page').style.display = 'none';
   document.getElementById('simulation-page').style.display = 'none';
   document.getElementById('sortToggle').style.display = 'flex';
   document.getElementById('tagCloud').style.display = 'flex';
+  // 恢复 hero/search/hot-tags
+  const hero = document.getElementById('heroBanner');
+  const search = document.querySelector('.search-container');
+  const hotTags = document.getElementById('hotTags');
+  if (hero) hero.style.display = '';
+  if (search) search.style.display = '';
+  if (hotTags) hotTags.style.display = '';
   currentPostId = null;
   document.body.classList.remove('viewing-article');
   history.pushState(null, null, '#/');
@@ -28,6 +42,7 @@ function showHome() {
 }
 
 function showAbout() {
+  _cleanupSimHide();
   document.getElementById('posts-list').style.display = 'none';
   document.getElementById('post-detail').classList.remove('active');
   document.getElementById('about-page').style.display = 'block';
@@ -43,6 +58,7 @@ function showAbout() {
 }
 
 function filterModule(module, el) {
+  _cleanupSimHide();
   currentModule = module;
   document.getElementById('searchScope').textContent = module === 'quant' ? '量化交易笔记' : '策略更新日志';
   searchQuery = '';
@@ -55,19 +71,24 @@ function filterModule(module, el) {
   document.getElementById('posts-list').style.display = 'block';
   document.getElementById('about-page').style.display = 'none';
   document.getElementById('simulation-page').style.display = 'none';
+  // 恢复 hero/search/hot-tags
+  const hb = document.getElementById('heroBanner'); if (hb) hb.style.display = '';
+  const sc = document.querySelector('.search-container'); if (sc) sc.style.display = '';
+  const ht = document.getElementById('hotTags'); if (ht) ht.style.display = '';
   document.getElementById('post-detail').classList.remove('active');
   history.pushState(null, null, '#/tab/' + module);
   renderPosts();
 }
 
-// 估算阅读时间（每分钟200字）
-function getReadingTime(content) {
-  const text = content.replace(/<[^>]+>/g, '');
-  const cn = (text.match(/[\u4e00-\u9fff]/g) || []).length;
-  const en = (text.match(/[a-zA-Z]+/g) || []).join(' ').length;
-  const words = cn + Math.ceil(en / 5); // 中文1字=1词，英文5字符≈1词
-  const minutes = Math.max(1, Math.ceil(words / 200));
-  return minutes;
+let pageHits = {};
+async function fetchPageHits() {
+  try {
+    const resp = await fetch('/api/page-hits');
+    if (resp.ok) pageHits = await resp.json();
+  } catch(e) { pageHits = {}; }
+}
+function getPostHits(postId) {
+  return pageHits['/#/post/' + postId] || 0;
 }
 
 function searchPosts(query) {
@@ -116,14 +137,13 @@ function renderPosts() {
   grid.innerHTML = filtered.map(post => {
     const cardClass = post.module === 'quant' ? '' : ' ' + post.module;
     const tagClass = post.module === 'quant' ? '' : ' ' + post.module;
-    const readingTime = getReadingTime(post.content);
     return '<div class="post-card' + cardClass + '" onclick="openPost(\'' + post.id + '\')">' +
       '<h3>' + post.title + '</h3>' +
       '<p class="summary">' + post.summary + '</p>' +
       '<div class="post-meta">' +
         post.tags.map(t => '<span class="tag' + tagClass + '">' + t + '</span>').join('') +
         '<span class="date">' + post.date + '</span>' +
-        '<span class="reading-time">🕒 ' + readingTime + '分钟</span>' +
+        '<span class="reading-time">👁 ' + getPostHits(post.id) + ' 次</span>' +
             '</div>' +
     '</div>';
   }).join('');
@@ -210,6 +230,7 @@ function renderAbout() {
 }
 
 function openPost(postId) {
+  _cleanupSimHide();
   const post = POSTS.find(p => p.id === postId);
   if (!post) return;
   currentPostId = postId;
@@ -228,13 +249,10 @@ function openPost(postId) {
   const prevPost = currentIndex > 0 ? modulePosts[currentIndex - 1] : null;
   const nextPost = currentIndex < modulePosts.length - 1 ? modulePosts[currentIndex + 1] : null;
   
-  // 生成TOC
-  const tocHTML = generateTOC(post.content);
   // 生成相关文章
   const relatedHTML = renderRelatedPosts(post);
-  // 阅读时间+字数统计
-  const wordCount = (post.content.replace(/<[^>]+>/g, '').match(/[\u4e00-\u9fff]/g) || []).length;
-  const readingTime = getReadingTime(post.content);
+  // 字数统计
+  const wordCount = (post.content.replace(/<[^>]+>/g, '').match(/[\\u4e00-\\u9fff]/g) || []).length;
   
   // 注入JSON-LD
   injectArticleSchema(post);
@@ -249,10 +267,9 @@ function openPost(postId) {
       '</div>' +
       '<div class="post-stats-bar">' +
         '<span class="post-stat-item">📝 ' + wordCount + ' 字</span>' +
-        '<span class="post-stat-item">🕒 ' + readingTime + ' 分钟</span>' +
+        '<span class="post-stat-item">👁 ' + getPostHits(post.id) + ' 次浏览</span>' +
       '</div>' +
     '</div>' +
-    tocHTML +
     '<div class="post-content">' + post.content + '</div>' +
     relatedHTML +
     '<div class="post-nav">' +
@@ -263,8 +280,6 @@ function openPost(postId) {
         ? '<div class="post-nav-card" onclick="openPost(\'' + nextPost.id + '\')"><span class="post-nav-label">下一篇 →</span><span class="post-nav-title">' + nextPost.title + '</span></div>'
         : '<div class="post-nav-spacer"></div>') +
     '</div>';
-  // 给文章h2/h3添加锚点（TOC跳转用）
-  requestAnimationFrame(() => { setTimeout(() => addHeadingAnchors(), 30); });
   // 触发Prism代码高亮
   requestAnimationFrame(() => { setTimeout(() => { if(typeof Prism !== 'undefined') Prism.highlightAll(); }, 100); });
   // 渲染盈亏曲线图（如果是策略文章），延迟到DOM layout完成后
@@ -285,6 +300,8 @@ function openPost(postId) {
 // Hash routing
 function handleHash() {
   const hash = window.location.hash || '';
+  // 任何非模拟面板路由都清理遮罩
+  if (hash !== '#/simulation') _cleanupSimHide();
   if (hash === '#/about') {
     showAbout();
   } else if (hash === '#/simulation') {
@@ -301,6 +318,9 @@ function handleHash() {
     document.getElementById('posts-list').style.display = 'block';
     document.getElementById('about-page').style.display = 'none';
     document.getElementById('simulation-page').style.display = 'none';
+    var _hb=document.getElementById('heroBanner');if(_hb)_hb.style.display='';
+    var _sc=document.querySelector('.search-container');if(_sc)_sc.style.display='';
+    var _ht=document.getElementById('hotTags');if(_ht)_ht.style.display='';
     document.getElementById('post-detail').classList.remove('active');
     renderPosts();
   } else {
@@ -311,8 +331,11 @@ window.addEventListener('hashchange', handleHash);
 window.addEventListener('load', handleHash);
 
 // 初始化
-renderPosts();
-document.getElementById('searchScope').textContent = '量化交易笔记';
+(async function init() {
+  await fetchPageHits();
+  renderPosts();
+  document.getElementById('searchScope').textContent = '量化交易笔记';
+})();
 
 // 渲染盈亏曲线图（纯Canvas — 赛博朋克视觉优化）
 function renderPnlChart(canvasId, dates, pnlData) {
@@ -575,47 +598,6 @@ function handleReadingProgress() {
   const btn = document.getElementById('backToTop');
   btn.classList.toggle('visible', winScroll > 400);
 }
-// ===== 文章目录(TOC) =====
-function generateTOC(content) {
-  const h2Matches = [...content.matchAll(/<h2[^>]*>(.*?)<\/h2>/g)];
-  const h3Matches = [...content.matchAll(/<h3[^>]*>(.*?)<\/h3>/g)];
-  if (h2Matches.length + h3Matches.length < 2) return '<div class="toc-panel toc-empty"><div class="toc-title">📑 目录</div><div class="toc-empty-hint">本文较短，无目录</div></div>';
-  const tocCollapsed = localStorage.getItem('toc_collapsed') === 'true';
-  let toc = '<div class="toc-panel' + (tocCollapsed ? ' collapsed' : '') + '"><div class="toc-title" onclick="toggleTOC(this.parentElement)">📑 目录</div><ul class="toc-list">';
-  let idx = 0;
-  // 构建章节索引
-  const sections = [];
-  h2Matches.forEach(m => sections.push({level:2, text:m[1].replace(/<[^>]+>/g,''), idx:idx++}));
-  h3Matches.forEach(m => sections.push({level:3, text:m[1].replace(/<[^>]+>/g,''), idx:idx++}));
-  sections.forEach((s,i) => {
-    const id = 'toc-'+i;
-    toc += '<li><a href="#'+id+'" class="'+(s.level===3?'toc-h3':'')+'" onclick="scrollToToc(event,\''+id+'\')">'+s.text+'</a></li>';
-  });
-  toc += '</ul></div>';
-  // 给content中的h2/h3添加id（已有content会在inner中使用，所以这里需要返回修改后的content的占位）
-  return toc;
-}
-function toggleTOC(panel) {
-  panel.classList.toggle('collapsed');
-  localStorage.setItem('toc_collapsed', panel.classList.contains('collapsed'));
-}
-
-function scrollToToc(e, id) {
-  e.preventDefault();
-  const target = document.getElementById(id);
-  if (!target) { // 动态查找
-    const links = document.querySelectorAll('.toc-panel a');
-    const idx = Array.from(links).findIndex(a => a.getAttribute('href')==='#'+id);
-    if (idx >= 0) {
-      const headings = document.querySelectorAll('.post-content h2, .post-content h3');
-      if (headings[idx]) {
-        headings[idx].scrollIntoView({behavior:'smooth',block:'start'});
-        headings[idx].style.outline = '2px solid var(--neon-blue)';
-        setTimeout(() => { headings[idx].style.outline = ''; }, 2000);
-      }
-    }
-  }
-}
 // ===== 相关文章推荐 =====
 function renderRelatedPosts(post) {
   const others = POSTS.filter(p => p.id !== post.id);
@@ -654,17 +636,24 @@ function injectArticleSchema(post) {
   script.textContent = JSON.stringify(schema);
   document.head.appendChild(script);
 }
-// ===== 文章内容中的h2/h3添加锚点id（用于TOC跳转）=====
-function addHeadingAnchors() {
-  const headings = document.querySelectorAll('.post-content h2, .post-content h3');
-  headings.forEach((h, i) => { h.id = 'toc-'+i; });
+// ===== 右侧滚动进度条 =====
+function updateVerticalProgress() {
+  const bar = document.getElementById('verticalProgress');
+  if (!bar) return;
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = docHeight > 0 ? Math.min(100, (scrollTop / docHeight) * 100) : 0;
+  bar.style.setProperty('--scroll-pct', pct + '%');
 }
 // ===== 模拟交易模块 =====
 let simData = null;
 let analyticsData = null;
+let hitCount = null;
 let simLoading = false;
 
 async function showSimulation() {
+  window.scrollTo({top: 0, behavior: 'instant'});
+
   // 隐藏其他面板
   document.getElementById('posts-list').style.display = 'none';
   document.getElementById('post-detail').classList.remove('active');
@@ -676,17 +665,56 @@ async function showSimulation() {
   document.body.classList.remove('viewing-article');
   history.pushState(null, null, '#/simulation');
 
+  // 隐藏 hero/search/hot-tags
+  const hero = document.getElementById('heroBanner');
+  const search = document.querySelector('.search-container');
+  const hotTags = document.getElementById('hotTags');
+  if (hero) hero.style.display = 'none';
+  if (search) search.style.display = 'none';
+  if (hotTags) hotTags.style.display = 'none';
+
+  // 激活模拟标签
+  document.querySelectorAll('.module-tab').forEach(tab => { tab.className = 'module-tab'; });
+  const simTab = document.querySelector('.module-tab[onclick*="showSimulation"]');
+  if (simTab) simTab.classList.add('active-sim');
+
   // 显示模拟面板
   const page = document.getElementById('simulation-page');
   page.style.display = 'block';
   document.getElementById('posts-list').style.display = 'none';
 
-  // 加载数据
-  if (!simData && !simLoading) {
-    await fetchSimulationData();
-  } else if (simData) {
+  // 加载数据 — 优先用 sessionStorage 缓存秒开
+  if (simData && !simLoading) {
     renderSimulationDashboard();
+    _unlockSimBody();
+  } else if (!simLoading) {
+    // 尝试从 sessionStorage 读取缓存（秒开但不解锁 body）
+    try {
+      var cached = sessionStorage.getItem('sim_cache');
+      if (cached) {
+        var parsed = JSON.parse(cached);
+        if (parsed.simData) { simData = parsed.simData; hitCount = parsed.hitCount; }
+        if (parsed.analyticsData) analyticsData = parsed.analyticsData;
+        if (simData) renderSimulationDashboard();  // 秒开但保持 body locked
+      }
+    } catch(e) {}
+    // 后台拉最新数据
+    await fetchSimulationData();
+    // 最终渲染完成后才解锁 body
+    _unlockSimBody();
   }
+
+  // 每60秒自动刷新
+  if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+  autoRefreshTimer = setInterval(() => {
+    if (document.getElementById('simulation-page').style.display !== 'none') {
+      fetchSimulationData();
+    } else {
+      clearInterval(autoRefreshTimer);
+      autoRefreshTimer = null;
+    }
+  }, 60000);
+
 }
 
 async function fetchSimulationData() {
@@ -696,15 +724,27 @@ async function fetchSimulationData() {
   document.getElementById('simDashboard').style.display = 'none';
 
   try {
-    const [simResp, anaResp] = await Promise.all([
+    const [simResp, anaResp, statsResp] = await Promise.all([
       fetch('/simulation.json?t=' + Date.now()),
-      fetch('/analytics.json?t=' + Date.now())
+      fetch('/analytics.json?t=' + Date.now()),
+      fetch('/api/stats')
     ]);
     if (!simResp.ok) throw new Error('HTTP ' + simResp.status);
     simData = await simResp.json();
     if (anaResp.ok) { try { analyticsData = await anaResp.json(); } catch(e) { analyticsData = null; } }
     else { analyticsData = null; }
+    if (statsResp.ok) { try { const s = await statsResp.json(); hitCount = s.today || s.total || 0; } catch(e) { hitCount = null; } }
+    else { hitCount = null; }
     renderSimulationDashboard();
+    // 缓存到 sessionStorage（刷新秒开）
+    try {
+      sessionStorage.setItem('sim_cache', JSON.stringify({
+        simData: simData,
+        analyticsData: analyticsData,
+        hitCount: hitCount,
+        ts: Date.now()
+      }));
+    } catch(e) {}
   } catch (e) {
     document.getElementById('simLoading').style.display = 'none';
     document.getElementById('simError').style.display = 'block';
@@ -712,6 +752,20 @@ async function fetchSimulationData() {
   } finally {
     simLoading = false;
   }
+}
+
+// === 日报日历：从 closed_trades 聚合每日盈亏 ===
+function computeDailyPnl(trades) {
+  const daily = {};  // { '2026-06-18': { pnl: 1.23, trades: [...], wins: 0, losses: 0 } }
+  for (const t of trades) {
+    const day = (t.close_time || '').substring(0, 10);
+    if (!day) continue;
+    if (!daily[day]) daily[day] = { pnl: 0, trades: [], wins: 0, losses: 0 };
+    daily[day].pnl += t.pnl || 0;
+    daily[day].trades.push(t);
+    if ((t.pnl || 0) >= 0) daily[day].wins++; else daily[day].losses++;
+  }
+  return daily;
 }
 
 function renderSimulationDashboard() {
@@ -729,7 +783,7 @@ function renderSimulationDashboard() {
     '<span class="ss-item"><span class="ss-dot ' + (statusRunning ? 'on' : 'off') + '"></span>' +
     (statusRunning ? '策略运行中' : '数据可能停更') + '</span>' +
     '<span class="ss-item">📌 版本: ' + version + '</span>' +
-    (minsAgo !== null ? '<span class="ss-item">🕐 ' + minsAgo + '分钟前更新</span>' : '');
+    (hitCount !== null ? '<span class="ss-item">👁 ' + hitCount + ' 次浏览</span>' : '');
 
   const a = simData.account || {};
   const pnlClass = a.total_pnl >= 0 ? 'up' : 'down';
@@ -747,10 +801,20 @@ function renderSimulationDashboard() {
       '<div class="sc-value ' + pnlClass + '">' + pnlSign + '$' + (a.total_pnl || 0).toFixed(2) + '</div>' +
       '<div class="sc-sub">' + pnlSign + (a.total_pnl_pct || 0).toFixed(2) + '%</div>' +
     '</div>' +
+    '<div class="sim-card card-balance">' +
+      '<div class="sc-label">可用余额</div>' +
+      '<div class="sc-value" style="color:#a78bfa">$' + (a.balance || 0).toFixed(2) + '</div>' +
+      '<div class="sc-sub">保证金占用 $' + (a.total_margin || 0).toFixed(0) + '</div>' +
+    '</div>' +
     '<div class="sim-card card-win">' +
       '<div class="sc-label">胜率</div>' +
       '<div class="sc-value" style="color:#39ff14">' + (simData.win_rate || 0) + '%</div>' +
       '<div class="sc-sub">' + (simData.wins || 0) + '赢 / ' + (simData.losses || 0) + '亏</div>' +
+    '</div>' +
+    '<div class="sim-card card-fee">' +
+      '<div class="sc-label">累计手续费</div>' +
+      '<div class="sc-value" style="color:#f87171">-$' + (a.total_fee || 0).toFixed(2) + '</div>' +
+      '<div class="sc-sub">含开平仓 taker 0.04%</div>' +
     '</div>' +
     '<div class="sim-card card-pos">' +
       '<div class="sc-label">当前持仓</div>' +
@@ -769,6 +833,9 @@ function renderSimulationDashboard() {
   // 已平仓
   renderTradesTable(simData.closed_trades || []);
 
+  // 日报日历
+  renderDailyCalendar();
+
   // 更新时间
   const footer = document.querySelector('.simulation-section .sim-updated');
   const timeStr = simData.updated_at || '';
@@ -780,7 +847,15 @@ function renderSimulationDashboard() {
     if (existing) existing.remove();
     el.insertAdjacentHTML('beforeend', '<div class="sim-updated">🕒 更新于 ' + timeStr + '</div>');
   }
+  
+  // 更新脚注时间
+  // (body 解锁由 _unlockSimBody() 在最终渲染后调用，防中间渲染提前解锁)
 }
+
+// === Lightweight Charts 权益曲线 ===
+let eqChart = null;
+let eqSeries = null;
+let eqInitLine = null;
 
 function renderEquityChart(history) {
   const container = document.getElementById('simChartContainer');
@@ -790,25 +865,34 @@ function renderEquityChart(history) {
   const now = new Date();
   let filtered = history;
   if (simRangeDays > 0) {
-    // 日=今天00:00, 周/月=今天00:00往前推
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    const cutoff = simRangeDays === 1 
-      ? todayStart 
-      : todayStart - (simRangeDays - 1) * 86400000;
-    filtered = filtered.filter(h => {
-      const t = (h.ts ? h.ts * 1000 : 0) || (h.t ? new Date(h.t.replace(' ','T')+'+08:00').getTime() : 0);
-      return t >= cutoff;
-    });
+    let cutoff;
+    if (simRangeDays === 1) {
+      cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() / 1000;
+    } else if (simRangeDays === 7) {
+      const day = now.getDay();
+      const mondayOffset = day === 0 ? -6 : 1 - day;
+      cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate() + mondayOffset).getTime() / 1000;
+    } else if (simRangeDays === 30) {
+      cutoff = new Date(now.getFullYear(), now.getMonth(), 1).getTime() / 1000;
+    } else {
+      cutoff = 0;
+    }
+    filtered = filtered.filter(h => h.ts >= cutoff);
   }
   if (filtered.length < 2) filtered = history;
 
-  // 重建容器内容
+  if (!filtered || filtered.length < 2) {
+    container.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;">暂无权益历史数据</div>';
+    return;
+  }
+
+  // 重建容器
   container.innerHTML = '';
-  
+
   // 标题行 + 范围按钮
   const header = document.createElement('div');
   header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;flex-wrap:wrap;gap:0.4rem;';
-  header.innerHTML = 
+  header.innerHTML =
     '<span class="chart-title">📈 权益曲线</span>' +
     '<div class="range-selector">' +
       '<button class="range-btn'+(simRangeDays===0?' active':'')+'" onclick="setChartRange(0)">全部</button>' +
@@ -818,166 +902,90 @@ function renderEquityChart(history) {
     '</div>';
   container.appendChild(header);
 
-  const canvas = document.createElement('canvas');
-  canvas.style.width = '100%';
-  canvas.style.height = '300px';
-  container.appendChild(canvas);
+  const chartDiv = document.createElement('div');
+  chartDiv.style.cssText = 'width:100%;height:320px;';
+  container.appendChild(chartDiv);
 
-  if (!filtered || filtered.length < 2) {
-    canvas.style.display = 'none';
-    container.insertAdjacentHTML('beforeend', '<div class="sim-empty">暂无权益历史数据</div>');
-    return;
-  }
+  // 数据转换 — 加8小时偏移使图表显示北京时间
+  const chartData = filtered.map(h => ({
+    time: h.ts + 28800,
+    value: h.equity
+  }));
 
-  const dpr = window.devicePixelRatio || 1;
-  const rect = container.getBoundingClientRect();
-  const W = rect.width - 32;
-  const H = 300;
-  canvas.width = W * dpr;
-  canvas.height = H * dpr;
-  canvas.style.width = W + 'px';
-  canvas.style.height = H + 'px';
+  const initBalance = simData && simData.account ? simData.account.initial_balance : 500;
 
-  const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
-  ctx.clearRect(0, 0, W, H);
+  // 销毁旧图
+  if (eqChart) { eqChart.remove(); eqChart = null; eqSeries = null; eqInitLine = null; }
 
-  const pad = { top: 20, right: 20, bottom: 40, left: 60 };
-  const pw = W - pad.left - pad.right;
-  const ph = H - pad.top - pad.bottom;
+  // requestAnimationFrame: 确保 chartDiv 已完成布局再创建图表（否则0尺寸→空白）
+  requestAnimationFrame(function() {
+  eqChart = LightweightCharts.createChart(chartDiv, {
+    layout: { background: { color: '#0a0e17' }, textColor: '#64748b' },
+    grid: { vertLines: { color: 'rgba(255,255,255,0.05)' }, horzLines: { color: 'rgba(255,255,255,0.05)' } },
+    crosshair: { mode: 1, vertLine: { color: 'rgba(0,212,255,0.3)', labelBackgroundColor: '#0a0e17' }, horzLine: { color: 'rgba(0,212,255,0.3)', labelBackgroundColor: '#0a0e17' } },
+    timeScale: { timeVisible: true, secondsVisible: false, borderColor: 'rgba(255,255,255,0.1)' },
+    rightPriceScale: { borderColor: 'rgba(255,255,255,0.1)', scaleMargins: { top: 0.1, bottom: 0.1 } },
+    handleScroll: true, handleScale: true,
 
-  // 数据范围
-  const equities = filtered.map(h => h.equity);
-  let minVal = Math.min(...equities);
-  let maxVal = Math.max(...equities);
-  const range = maxVal - minVal || 1;
-  minVal -= range * 0.1;
-  maxVal += range * 0.1;
-  if (minVal < 0) minVal *= 1.1;
+  });
 
-  // 网格和Y轴
-  ctx.fillStyle = '#0a0e17';
-  ctx.fillRect(0, 0, W, H);
-  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-  ctx.lineWidth = 1;
-  const gridLines = 6;
-  for (let i = 0; i <= gridLines; i++) {
-    const y = pad.top + (ph / gridLines) * i;
-    ctx.beginPath();
-    ctx.moveTo(pad.left, y);
-    ctx.lineTo(W - pad.right, y);
-    ctx.stroke();
-    const val = maxVal - (range * 1.2) / gridLines * i;
-    ctx.fillStyle = '#64748b';
-    ctx.font = '10px monospace';
-    ctx.textAlign = 'right';
-    ctx.fillText('$' + val.toFixed(0), pad.left - 8, y + 4);
-  }
+  eqSeries = eqChart.addLineSeries({
+    color: '#00d4ff',
+    lineWidth: 2,
+    crosshairMarkerBackgroundColor: '#00d4ff',
+    lastValueVisible: true,
+    priceLineVisible: false,
+  });
+  eqSeries.setData(chartData);
 
   // 初始资金参考线
-  if (simData && simData.account && simData.account.initial_balance) {
-    const initEquity = simData.account.initial_balance;
-    const initY = pad.top + ((maxVal - initEquity) / (maxVal - minVal)) * ph;
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-    ctx.setLineDash([4, 4]);
-    ctx.beginPath();
-    ctx.moveTo(pad.left, initY);
-    ctx.lineTo(W - pad.right, initY);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = '#64748b';
-    ctx.font = '10px monospace';
-    ctx.textAlign = 'left';
-    ctx.fillText('初始 $' + initEquity.toFixed(0), pad.left + 4, initY - 4);
+  eqInitLine = eqSeries.createPriceLine({
+    price: initBalance,
+    color: 'rgba(255,255,255,0.15)',
+    lineWidth: 1,
+    lineStyle: 2, // dashed
+    axisLabelVisible: true,
+    title: '初始',
+  });
+
+  // 时间轴对齐：从日/周/月起点开始（加8小时偏移匹配北京时间）
+  const OFFSET = 28800;
+  if (simRangeDays > 0) {
+    const nowTs = Math.floor(Date.now() / 1000) + OFFSET;
+    let rangeFrom;
+    if (simRangeDays === 1) {
+      rangeFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() / 1000 + OFFSET;
+    } else if (simRangeDays === 7) {
+      const day = now.getDay();
+      const mondayOffset = day === 0 ? -6 : 1 - day;
+      rangeFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate() + mondayOffset).getTime() / 1000 + OFFSET;
+    } else if (simRangeDays === 30) {
+      rangeFrom = new Date(now.getFullYear(), now.getMonth(), 1).getTime() / 1000 + OFFSET;
+    }
+    eqChart.timeScale().setVisibleRange({ from: rangeFrom, to: nowTs });
+  } else {
+    eqChart.timeScale().fitContent();
   }
-
-  // 渐变填充
-  const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + ph);
-  grad.addColorStop(0, 'rgba(0,212,255,0.15)');
-  grad.addColorStop(1, 'rgba(0,212,255,0)');
-
-  // 绘制区域
-  ctx.beginPath();
-  const firstPt = filtered[0];
-  let x0 = pad.left + ((0) / (filtered.length - 1)) * pw;
-  let y0 = pad.top + ((maxVal - firstPt.equity) / (maxVal - minVal)) * ph;
-  ctx.moveTo(x0, pad.top + ph);
-  ctx.lineTo(x0, y0);
-
-  // 绘制线条和数据点
-  ctx.strokeStyle = '#00d4ff';
-  ctx.lineWidth = 2;
-  ctx.shadowColor = 'rgba(0,212,255,0.5)';
-  ctx.shadowBlur = 8;
-  ctx.beginPath();
-  for (let i = 0; i < filtered.length; i++) {
-    const x = pad.left + (i / (filtered.length - 1)) * pw;
-    const y = pad.top + ((maxVal - filtered[i].equity) / (maxVal - minVal)) * ph;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.stroke();
-
-  // 区域填充
-  ctx.shadowBlur = 0;
-  ctx.lineTo(pad.left + pw, pad.top + ph);
-  ctx.closePath();
-  ctx.fillStyle = grad;
-  ctx.fill();
-
-  // 再次绘制线条
-  ctx.strokeStyle = '#00d4ff';
-  ctx.lineWidth = 1.5;
-  ctx.shadowColor = 'rgba(0,212,255,0.3)';
-  ctx.shadowBlur = 5;
-  ctx.beginPath();
-  for (let i = 0; i < filtered.length; i++) {
-    const x = pad.left + (i / (filtered.length - 1)) * pw;
-    const y = pad.top + ((maxVal - filtered[i].equity) / (maxVal - minVal)) * ph;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-
-  // 终点标记
-  const lastIdx = filtered.length - 1;
-  const lx = pad.left + (lastIdx / lastIdx) * pw;
-  const ly = pad.top + ((maxVal - filtered[lastIdx].equity) / (maxVal - minVal)) * ph;
-  ctx.fillStyle = '#00d4ff';
-  ctx.shadowColor = 'rgba(0,212,255,0.8)';
-  ctx.shadowBlur = 12;
-  ctx.beginPath();
-  ctx.arc(lx, ly, 4, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = '#00d4ff';
-  ctx.font = 'bold 11px monospace';
-  ctx.textAlign = 'left';
-  ctx.fillText('$' + filtered[lastIdx].equity.toFixed(2), lx + 8, ly + 4);
-
-  // X轴标签
-  ctx.fillStyle = '#64748b';
-  ctx.font = '10px monospace';
-  ctx.textAlign = 'center';
-  const xStep = Math.max(1, Math.floor(filtered.length / 5));
-  for (let i = 0; i < filtered.length; i += xStep) {
-    const x = pad.left + (i / (filtered.length - 1)) * pw;
-    const label = filtered[i].t || '';
-    const short = label.length > 16 ? label.slice(-8) : label.slice(11, 16);
-    ctx.fillText(short, x, H - pad.bottom + 16);
-  }
+  }); // end requestAnimationFrame
 }
+
 function renderPositionsTable(positions) {
   const container = document.getElementById('simPositions');
   if (!positions || positions.length === 0) {
     container.innerHTML = '<div class="sim-empty">暂无持仓</div>';
     return;
   }
+
+  // 分页：每页10个
+  const pageSize = 10;
+  const totalPages = Math.ceil(positions.length / pageSize);
+  if (simPosPage >= totalPages) simPosPage = Math.max(0, totalPages - 1);
+  const pageData = positions.slice(simPosPage * pageSize, (simPosPage + 1) * pageSize);
+
   let html = '<table class="sim-table"><thead><tr>' +
     '<th>交易对</th><th>方向</th><th>入场价</th><th>当前价</th><th>数量</th><th>保证金</th><th>杠杆</th><th>浮盈(USD)</th><th>浮盈(%)</th><th>开仓时间</th>' +
     '</tr></thead><tbody>';
-  positions.forEach(p => {
+  pageData.forEach(p => {
     const pnlClass = p.unrealized_pnl >= 0 ? 'pnl-up' : 'pnl-down';
     const pnlSign = p.unrealized_pnl >= 0 ? '+' : '';
     const sideClass = p.side === 'BUY' ? 'side-buy' : 'side-sell';
@@ -995,6 +1003,18 @@ function renderPositionsTable(positions) {
       '</tr>';
   });
   html += '</tbody></table>';
+
+  // 分页导航
+  if (totalPages > 1) {
+    html += '<div class="page-nav">' +
+      '<button class="page-btn" onclick="simPosPage=0;renderPositionsTable(simData.positions||[])" ' + (simPosPage === 0 ? 'disabled' : '') + '>«</button>';
+    for (let p = 0; p < totalPages; p++) {
+      html += '<button class="page-btn' + (p === simPosPage ? ' active' : '') + '" onclick="simPosPage=' + p + ';renderPositionsTable(simData.positions||[])">' + (p + 1) + '</button>';
+    }
+    html += '<button class="page-btn" onclick="simPosPage=' + (totalPages - 1) + ';renderPositionsTable(simData.positions||[])" ' + (simPosPage >= totalPages - 1 ? 'disabled' : '') + '>»</button>' +
+      '<span class="page-info">' + (simPosPage + 1) + '/' + totalPages + ' 页</span></div>';
+  }
+
   container.innerHTML = html;
 }
 
@@ -1004,17 +1024,45 @@ function renderAnalyticsCards() {
   if (!container) return;
   if (!analyticsData || !analyticsData.trade_metrics) {
     // 无 analytics 数据时尝试从 simulation 数据计算
-    if (simData && simData.closed_trades && simData.closed_trades.length > 0) {
-      const trades = simData.closed_trades;
-      const wins = trades.filter(t => t.pnl > 0);
-      const losses = trades.filter(t => t.pnl <= 0);
-      const totalPnL = trades.reduce((s, t) => s + t.pnl, 0);
-      const winSum = wins.reduce((s, t) => s + t.pnl, 0);
-      const lossSum = Math.abs(losses.reduce((s, t) => s + t.pnl, 0));
-      const pf = lossSum > 0 ? (winSum / lossSum).toFixed(2) : '--';
-      const expVal = trades.length > 0 ? (totalPnL / trades.length).toFixed(2) : '--';
-      const maxDD = simData.account && simData.account.max_drawdown_pct 
-        ? simData.account.max_drawdown_pct.toFixed(1) + '%' : '--';
+    // v3.9.73: 无平仓时也从持仓/权益历史降级计算
+    const hasTrades = simData && simData.closed_trades && simData.closed_trades.length > 0;
+    const hasPositions = simData && simData.positions && simData.positions.length > 0;
+    const hasEquity = simData && simData.equity_history && simData.equity_history.length >= 2;
+    
+    if (hasTrades || hasPositions || hasEquity) {
+      // v3.9.73: 有平仓用平仓数据，无平仓用持仓浮盈 + 权益历史
+      let trades, wins, losses, totalPnL, winSum, lossSum, pf, expVal, maxDD;
+      if (hasTrades) {
+        trades = simData.closed_trades;
+        wins = trades.filter(t => t.pnl > 0);
+        losses = trades.filter(t => t.pnl <= 0);
+        totalPnL = trades.reduce((s, t) => s + t.pnl, 0);
+        winSum = wins.reduce((s, t) => s + t.pnl, 0);
+        lossSum = Math.abs(losses.reduce((s, t) => s + t.pnl, 0));
+        pf = lossSum > 0 ? (winSum / lossSum).toFixed(2) : '--';
+        expVal = trades.length > 0 ? (totalPnL / trades.length).toFixed(2) : '--';
+      } else {
+        trades = [];
+        wins = []; losses = [];
+        totalPnL = simData.account ? (simData.account.total_pnl || 0) : 0;
+        winSum = 0; lossSum = 0;
+        pf = '--'; expVal = '--';
+      }
+      // 最大回撤：优先用 computed max_drawdown_pct，否则从 equity_history 计算
+      if (simData.account && simData.account.max_drawdown_pct) {
+        maxDD = simData.account.max_drawdown_pct.toFixed(1) + '%';
+      } else if (hasEquity) {
+        const equities = simData.equity_history.map(h => h.equity);
+        let peak = equities[0], dd = 0;
+        for (let i = 1; i < equities.length; i++) {
+          if (equities[i] > peak) peak = equities[i];
+          const d = (peak - equities[i]) / peak * 100;
+          if (d > dd) dd = d;
+        }
+        maxDD = dd.toFixed(1) + '%';
+      } else {
+        maxDD = '--';
+      }
       container.innerHTML =
         '<div class="sim-analytics-card card-pf">' +
           '<div class="sac-label">盈亏比</div>' +
@@ -1044,9 +1092,47 @@ function renderAnalyticsCards() {
   const m = analyticsData.trade_metrics;
   const p = analyticsData.performance || {};
   const pf = m.profit_factor || 0;
-  const sharpe = p.sharpe_ratio || '--';
-  const maxDD = p.max_drawdown ? (p.max_drawdown.max_dd_pct || p.max_drawdown) : '--';
-  const maxDDStr = typeof maxDD === 'object' ? (maxDD.max_dd_pct || '--') + '%' : (maxDD !== '--' ? maxDD + '%' : '--');
+  // 夏普: analytics null → 从simulation equity_history估算, 都不行就 N/A
+  let sharpe = p.sharpe_ratio;
+  if (!sharpe && simData && simData.equity_history && simData.equity_history.length >= 2) {
+    const eq = simData.equity_history;
+    const initBal = simData.account ? (simData.account.initial_balance || 500) : 500;
+    const dailyReturns = [];
+    let dayStart = null, dayEq = null;
+    for (let i = 0; i < eq.length; i++) {
+      const d = new Date(eq[i].ts * 1000);
+      const dayKey = d.toDateString();
+      if (dayStart !== dayKey) {
+        if (dayStart && dayEq !== null) dailyReturns.push((eq[i-1].equity - dayEq) / dayEq);
+        dayStart = dayKey;
+        dayEq = eq[i].equity;
+      }
+    }
+    if (dailyReturns.length >= 2) {
+      const mean = dailyReturns.reduce((s,v) => s+v, 0) / dailyReturns.length;
+      const variance = dailyReturns.reduce((s,v) => s + Math.pow(v-mean, 2), 0) / (dailyReturns.length-1);
+      const std = Math.sqrt(variance);
+      sharpe = std > 0 ? ((mean / std) * Math.sqrt(252)).toFixed(2) : null;
+    }
+  }
+  if (!sharpe) sharpe = 'N/A';
+  // 最大回撤: analytics null → simulation account.max_drawdown_pct → equity计算
+  let maxDD = p.max_drawdown;
+  if (!maxDD && simData) {
+    if (simData.account && simData.account.max_drawdown_pct) {
+      maxDD = simData.account.max_drawdown_pct;
+    } else if (simData.equity_history && simData.equity_history.length >= 2) {
+      const eq = simData.equity_history.map(h => h.equity);
+      let peak = eq[0], dd = 0;
+      for (let i = 1; i < eq.length; i++) {
+        if (eq[i] > peak) peak = eq[i];
+        const d = (peak - eq[i]) / peak * 100;
+        if (d > dd) dd = d;
+      }
+      maxDD = dd;
+    }
+  }
+  const maxDDStr = maxDD ? (typeof maxDD === 'number' ? maxDD.toFixed(1) + '%' : String(maxDD)) : 'N/A';
   const wl = (m.win_count || 0) + '赢 / ' + (m.loss_count || 0) + '亏';
   
   container.innerHTML =
@@ -1083,11 +1169,22 @@ function renderTradesTable(trades) {
   const now = new Date();
   let filtered = trades;
   if (simTradeRange > 0) {
-    // 日=今天00:00, 周/月=今天00:00往前推
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    const cutoff = simTradeRange === 1 
-      ? todayStart 
-      : todayStart - (simTradeRange - 1) * 86400000;
+    let cutoff;
+    if (simTradeRange === 1) {
+      // 日 = 今天 00:00
+      cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    } else if (simTradeRange === 7) {
+      // 周 = 本周一 00:00
+      const day = now.getDay();
+      const mondayOffset = day === 0 ? -6 : 1 - day; // Sunday=0 → -6, Monday=1 → 0
+      const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + mondayOffset);
+      cutoff = monday.getTime();
+    } else if (simTradeRange === 30) {
+      // 月 = 本月1日 00:00
+      cutoff = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    } else {
+      cutoff = 0;
+    }
     filtered = trades.filter(t => {
       const ct = t.close_time;
       if (!ct) return false;
@@ -1095,44 +1192,30 @@ function renderTradesTable(trades) {
       return parsed.getTime() >= cutoff;
     });
   }
-  if (filtered.length === 0) filtered = trades;
+  if (filtered.length === 0) filtered = trades.slice(-30);
 
-  // 计算汇总
-  const totalPnL = filtered.reduce((s, t) => s + (t.pnl || 0), 0);
-  const wins = filtered.filter(t => (t.pnl || 0) > 0);
-  const losses = filtered.filter(t => (t.pnl || 0) <= 0);
-  const winRate = filtered.length > 0 ? ((wins.length / filtered.length) * 100).toFixed(0) : 0;
-  const totalWin = wins.reduce((s, t) => s + (t.pnl || 0), 0);
-  const totalLoss = Math.abs(losses.reduce((s, t) => s + (t.pnl || 0), 0));
-  const pf = totalLoss > 0 ? (totalWin / totalLoss) : (totalWin > 0 ? 99 : 0);
+  // 分页：每页10笔
+  const pageSize = 10;
+  const totalPages = Math.ceil(filtered.length / pageSize);
+  if (simTradePage >= totalPages) simTradePage = Math.max(0, totalPages - 1);
+  const pageData = filtered.slice(simTradePage * pageSize, (simTradePage + 1) * pageSize);
 
-  // 范围选择按钮
+  // 标题
   let html = '<div class="trade-range-bar">' +
     '<span class="trade-range-label">📋 已平仓记录</span>' +
     '<div class="range-selector">' +
-      '<button class="range-btn' + (simTradeRange === 0 ? ' active' : '') + '" onclick="setTradeRange(0)">全部</button>' +
-      '<button class="range-btn' + (simTradeRange === 1 ? ' active' : '') + '" onclick="setTradeRange(1)">日</button>' +
-      '<button class="range-btn' + (simTradeRange === 7 ? ' active' : '') + '" onclick="setTradeRange(7)">周</button>' +
-      '<button class="range-btn' + (simTradeRange === 30 ? ' active' : '') + '" onclick="setTradeRange(30)">月</button>' +
+      '<button class="range-btn'+(simTradeRange===0?' active':'')+'" onclick="setTradeRange(0)">全部</button>' +
+      '<button class="range-btn'+(simTradeRange===1?' active':'')+'" onclick="setTradeRange(1)">日</button>' +
+      '<button class="range-btn'+(simTradeRange===7?' active':'')+'" onclick="setTradeRange(7)">周</button>' +
+      '<button class="range-btn'+(simTradeRange===30?' active':'')+'" onclick="setTradeRange(30)">月</button>' +
     '</div>' +
     '</div>';
 
-  // 汇总行
-  const sumPnLClass = totalPnL >= 0 ? 'pnl-up' : 'pnl-down';
-  const sumPnLSign = totalPnL >= 0 ? '+' : '';
-  html += '<div class="trade-summary">' +
-    '<div class="ts-item"><span class="ts-label">筛选笔数</span><span class="ts-value" style="color:#00d4ff">' + filtered.length + '</span></div>' +
-    '<div class="ts-item"><span class="ts-label">总盈亏</span><span class="ts-value ' + sumPnLClass + '">' + sumPnLSign + '$' + totalPnL.toFixed(2) + '</span></div>' +
-    '<div class="ts-item"><span class="ts-label">胜率</span><span class="ts-value" style="color:' + (parseInt(winRate) >= 50 ? '#39ff14' : '#ff4466') + '">' + winRate + '%</span></div>' +
-    '<div class="ts-item"><span class="ts-label">盈亏比</span><span class="ts-value" style="color:' + (pf >= 1 ? '#39ff14' : '#ff4466') + '">' + pf.toFixed(1) + '</span></div>' +
-    '<div class="ts-item"><span class="ts-label">赢/亏</span><span class="ts-value" style="color:#94a3b8">' + wins.length + '赢 / ' + losses.length + '亏</span></div>' +
-    '</div>';
-
-  // 表格
-  html += '<table class="sim-table"><thead><tr>' +
+  // 表格（移除高度限制，全部显示）
+  html += '<div class="sim-table-wrap"><table class="sim-table"><thead><tr>' +
     '<th>交易对</th><th>方向</th><th>入场价</th><th>出场价</th><th>保证金</th><th>盈亏(USD)</th><th>盈亏(%)</th><th>平仓时间</th>' +
     '</tr></thead><tbody>';
-  filtered.forEach(t => {
+  pageData.forEach(t => {
     const pnlClass = t.pnl >= 0 ? 'pnl-up' : 'pnl-down';
     const pnlSign = t.pnl >= 0 ? '+' : '';
     const sideClass = t.side === 'BUY' ? 'side-buy' : 'side-sell';
@@ -1147,12 +1230,173 @@ function renderTradesTable(trades) {
       '<td style="color:#94a3b8;font-size:0.75rem">' + (t.close_time || '') + '</td>' +
       '</tr>';
   });
-  html += '</tbody></table>';
+  html += '</tbody></table></div>';
+
+  // 分页导航 — 始终显示（1页时仅显示页码信息）
+  html += '<div class="page-nav">';
+  if (totalPages > 1) {
+    html += '<button class="page-btn" onclick="setTradeRange(' + simTradeRange + ');simTradePage=0;renderTradesTable(simData.closed_trades||[])" ' + (simTradePage === 0 ? 'disabled' : '') + '>«</button>';
+    for (let p = 0; p < totalPages; p++) {
+      html += '<button class="page-btn' + (p === simTradePage ? ' active' : '') + '" onclick="simTradePage=' + p + ';renderTradesTable(simData.closed_trades||[])">' + (p + 1) + '</button>';
+    }
+    html += '<button class="page-btn" onclick="setTradeRange(' + simTradeRange + ');simTradePage=' + (totalPages - 1) + ';renderTradesTable(simData.closed_trades||[])" ' + (simTradePage >= totalPages - 1 ? 'disabled' : '') + '>»</button>';
+  }
+  html += '<span class="page-info">' + filtered.length + ' 笔 · ' + (simTradePage + 1) + '/' + totalPages + ' 页</span></div>';
+
   container.innerHTML = html;
 }
 function setTradeRange(days) {
   simTradeRange = days;
+  simTradePage = 0;
   renderTradesTable(simData.closed_trades || []);
+}
+
+// === 日报日历渲染 ===
+const CAL_MONTH_NAMES = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+const CAL_DAY_NAMES = ['一','二','三','四','五','六','日'];
+
+function renderDailyCalendar() {
+  var container = document.getElementById('simCalendar');
+  if (!container) return;
+
+  var trades = simData.closed_trades || [];
+  var daily = computeDailyPnl(trades);
+  var year = calendarYear;
+  var month = calendarMonth;
+
+  var firstDay = new Date(year, month, 1);
+  var totalDays = new Date(year, month + 1, 0).getDate();
+  var startDow = firstDay.getDay() - 1;
+  if (startDow < 0) startDow = 6;
+
+  var now = new Date();
+  var monthPnl = 0, monthDays = 0, monthWins = 0, monthLosses = 0;
+
+  var html = '';
+  html += '<div class="cal-header">';
+  html += '<button class="cal-nav" onclick="calendarMonth--;if(calendarMonth<0){calendarMonth=11;calendarYear--;}renderDailyCalendar();">◀</button>';
+  html += '<span class="cal-title">' + year + '年 ' + CAL_MONTH_NAMES[month] + '</span>';
+  html += '<button class="cal-nav" onclick="calendarMonth++;if(calendarMonth>11){calendarMonth=0;calendarYear++;}renderDailyCalendar();">▶</button>';
+  html += '</div>';
+
+  html += '<div class="cal-grid">';
+  for (var d = 0; d < 7; d++) {
+    html += '<div class="cal-day-name">' + CAL_DAY_NAMES[d] + '</div>';
+  }
+  for (var i = 0; i < startDow; i++) {
+    html += '<div class="cal-cell cal-empty"></div>';
+  }
+  for (var day = 1; day <= totalDays; day++) {
+    var dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+    var dd = daily[dateStr];
+    var isToday = dateStr === now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    var isFuture = new Date(year, month, day) > now;
+
+    var cellClass = 'cal-cell';
+    var pnlDisplay = '';
+
+    if (isFuture) {
+      cellClass += ' cal-future';
+    } else if (dd) {
+      var pnl = dd.pnl;
+      monthPnl += pnl;
+      monthDays++;
+      monthWins += dd.wins;
+      monthLosses += dd.losses;
+      if (pnl >= 0) {
+        if (pnl > 5) cellClass += ' cal-profit-high';
+        else if (pnl > 1) cellClass += ' cal-profit-mid';
+        else cellClass += ' cal-profit-low';
+      } else {
+        if (pnl < -5) cellClass += ' cal-loss-high';
+        else if (pnl < -1) cellClass += ' cal-loss-mid';
+        else cellClass += ' cal-loss-low';
+      }
+      cellClass += ' cal-has-data';
+      pnlDisplay = (pnl >= 0 ? '+' : '') + pnl.toFixed(1);
+    } else {
+      cellClass += ' cal-no-data';
+    }
+    if (isToday) cellClass += ' cal-today';
+
+    html += '<div class="' + cellClass + '"' + (dd ? ' onclick="showDayTrades(\'' + dateStr + '\')" title="' + dateStr + ': ' + (dd.pnl >= 0 ? '+' : '') + dd.pnl.toFixed(2) + 'U | ' + dd.trades.length + '笔"' : '') + '>';
+    html += '<span class="cal-day-num">' + day + '</span>';
+    if (pnlDisplay) {
+      html += '<span class="cal-day-pnl">' + pnlDisplay + '</span>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+
+  var summaryPnlClass = monthPnl >= 0 ? 'cal-summary-up' : 'cal-summary-down';
+  html += '<div class="cal-summary">';
+  html += '<span>本月交易 <strong>' + monthDays + '</strong> 天</span>';
+  html += '<span>总盈亏 <strong class="' + summaryPnlClass + '">' + (monthPnl >= 0 ? '+' : '') + monthPnl.toFixed(2) + 'U</strong></span>';
+  html += '<span>胜率 <strong>' + (monthDays > 0 ? Math.round(monthWins / (monthWins + monthLosses) * 100) : 0) + '%</strong>（' + monthWins + '赢' + monthLosses + '亏）</span>';
+  html += '</div>';
+
+  html += '<div class="cal-detail" id="calDetail" style="display:none;"></div>';
+  container.innerHTML = html;
+}
+
+function showDayTrades(dateStr) {
+  var trades = (simData.closed_trades || []).filter(function(t) { return (t.close_time || '').substring(0, 10) === dateStr; });
+  if (!trades.length) return;
+  var detail = document.getElementById('calDetail');
+  if (!detail) return;
+
+  var totalPnl = 0;
+  var html = '<div class="cal-detail-header" onclick="document.getElementById(\'calDetail\').style.display=\'none\'">📅 ' + dateStr + ' 交易明细（' + trades.length + '笔） ✕</div>';
+  html += '<div class="sim-table-wrap"><table class="sim-table"><thead><tr>';
+  html += '<th>币种</th><th>方向</th><th>入场</th><th>出场</th><th>盈亏</th><th>盈亏%</th>';
+  html += '</tr></thead><tbody>';
+
+  for (var i = 0; i < trades.length; i++) {
+    var t = trades[i];
+    var sideClass = t.side === 'BUY' ? 'side-buy' : 'side-sell';
+    var pnlClass = (t.pnl || 0) >= 0 ? 'pnl-up' : 'pnl-down';
+    var pnlSign = (t.pnl || 0) >= 0 ? '+' : '';
+    totalPnl += t.pnl || 0;
+    html += '<tr>';
+    html += '<td>' + (t.symbol || '') + '</td>';
+    html += '<td class="' + sideClass + '">' + (t.side || '') + '</td>';
+    html += '<td>' + formatPrice(t.entry_price) + '</td>';
+    html += '<td>' + formatPrice(t.exit_price) + '</td>';
+    html += '<td class="' + pnlClass + '">' + pnlSign + '$' + (t.pnl || 0).toFixed(2) + '</td>';
+    html += '<td class="' + pnlClass + '">' + pnlSign + (t.pnl_pct || 0).toFixed(2) + '%</td>';
+    html += '</tr>';
+  }
+
+  html += '</tbody></table></div>';
+  var totalClass = totalPnl >= 0 ? 'pnl-up' : 'pnl-down';
+  html += '<div class="cal-detail-total">合计: <span class="' + totalClass + '">' + (totalPnl >= 0 ? '+' : '') + '$' + totalPnl.toFixed(2) + '</span></div>';
+  detail.innerHTML = html;
+  detail.style.display = 'block';
+}
+
+// ===== 解锁模拟面板 — 仅图表resize + 暴力滚动，不移除遮罩 =====
+function _unlockSimBody() {
+  var simPage = document.getElementById('simulation-page');
+  if (simPage) simPage.scrollTop = 0;
+  // Lightweight Charts resize
+  if (eqChart) {
+    try { eqChart.resize(); } catch(e) {}
+  }
+  // 三段暴力滚动
+  window.scrollTo({top: 0, behavior: 'instant'});
+  setTimeout(function(){ window.scrollTo({top: 0, behavior: 'instant'}); }, 50);
+  setTimeout(function(){ window.scrollTo({top: 0, behavior: 'instant'}); }, 300);
+  setTimeout(function(){
+    if (simPage && simPage.style.display !== 'none') {
+      simPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, 400);
+}
+
+// 清理 pre-sim-hide 遮罩（仅导航离开模拟面板时调用）
+function _cleanupSimHide() {
+  var preHide = document.getElementById('pre-sim-hide');
+  if (preHide) preHide.remove();
 }
 
 // ===== v3.9.51 手动刷新模拟数据 =====
@@ -1161,6 +1405,9 @@ async function refreshSimulation() {
   if (btn) { btn.textContent = '⏳ 刷新中...'; btn.disabled = true; }
   simData = null;
   analyticsData = null;
+  hitCount = null;
+  simPosPage = 0;
+  simTradePage = 0;
   await fetchSimulationData();
   if (btn) { btn.textContent = '🔄 手动刷新'; btn.disabled = false; }
 }
@@ -1200,14 +1447,5 @@ function setChartRange(days) {
 
 window.addEventListener('scroll', function() {
   handleReadingProgress();
-  // 高亮当前TOC项
-  const tocLinks = document.querySelectorAll('.toc-panel a');
-  if (tocLinks.length === 0) return;
-  const headings = document.querySelectorAll('.post-content h2, .post-content h3');
-  if (headings.length === 0) return;
-  let current = -1;
-  headings.forEach((h, i) => {
-    if (h.getBoundingClientRect().top <= 120) current = i;
-  });
-  tocLinks.forEach((a,i) => { a.classList.toggle('active', i === current); });
+  updateVerticalProgress();
 }, {passive:true});
