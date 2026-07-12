@@ -1,3 +1,7 @@
 *.bak
 analytics.json
 simulation.json
+*.db
+*.log
+*.db-shm
+*.db-wal
